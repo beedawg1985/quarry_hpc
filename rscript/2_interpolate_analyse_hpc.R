@@ -24,6 +24,8 @@ grassLocation <<- paste0(userDataDir,'/grassdb/quarry/')
 print('loading functions...')
 source('rscript/general_functions.R')
 print('done!')
+
+.GlobalEnv$.MPIrun = MPIrun()
 # new CV grids ----------------------------------------------------
 # prep parameters for grass resamp.filter 
 print('generating cv params...')

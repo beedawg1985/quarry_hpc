@@ -4,9 +4,12 @@ module load beta-modules
 module load r/r-4.1.1_bc-3.13
 module load nano/2.4.2
 # required on myriad compute nodes ?
-# module unload udunits
-# module load udunits/2.2.19
+module unload udunits
+module load udunits/2.2.19
 module load gerun
+# OpenMPI 3 settings for single node jobs
+export OMPI_MCA_btl=tcp,vader,self
+
 
 export PATH=/home/tcrnbgh/grass_latest/zstd/bin:$PATH
 export LD_LIBRARY_PATH=/home/tcrnbgh/grass_latest/zstd/bin:$LD_LIBRARY_PATH
