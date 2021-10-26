@@ -1,3 +1,6 @@
+library(Rmpi)
+library(snow)
+
 setwd('/home/tcrnbgh/Scratch/quarry_data/quarry_hpc')
 sink('./2_interpolate_analyse_hpc_sinkout.txt')
 
@@ -25,7 +28,6 @@ print('loading functions...')
 source('rscript/general_functions.R')
 print('done!')
 
-.GlobalEnv$.MPIrun = MPIrun()
 # new CV grids ----------------------------------------------------
 # prep parameters for grass resamp.filter 
 print('generating cv params...')
@@ -84,6 +86,7 @@ st <- Sys.time()
 
 #!! if offSet = T the use pd$tiles$pol !!
 print('getting MPI cluster...')
+
 cl <- snow::getMPIcluster()
 if (is.null(cl)) { 
   print('getMPIcluster() failed...')

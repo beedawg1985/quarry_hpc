@@ -1,5 +1,3 @@
-library(Rmpi)
-library(snow)
 library(tuneRanger)
 library(gstat)
 library(reshape2)
