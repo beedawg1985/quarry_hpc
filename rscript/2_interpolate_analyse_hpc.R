@@ -1,7 +1,10 @@
-#!/usr/bin/env Rscript
 setwd('/home/tcrnbgh/Scratch/quarry_data/quarry_hpc')
+sink('./2_interpolate_analyse_hpc_sinkout.txt')
 
 # check if packages need installing
+print('checking packages...')
+.libPaths(c('/home/tcrnbgh/R/x86_64-pc-linux-gnu-library/4.1',
+            .libPaths()))
 list.of.packages <- c("tuneRanger","gstat","reshape2",
                       "e1071","caret","randomForest","stringr",
                       "stars","sf","dplyr","gdalUtils",
@@ -11,17 +14,19 @@ list.of.packages <- c("tuneRanger","gstat","reshape2",
 new.packages <- list.of.packages[!(list.of.packages %in% installed.packages()[,"Package"])]
 if(length(new.packages)) install.packages(new.packages,
                                           lib="/home/tcrnbgh/R/x86_64-pc-linux-gnu-library/4.1")
-
+print('done!')
 # set envs
 userDataDir <<- '/home/tcrnbgh/Scratch/quarry_data'
 grassMapset <<- paste0(userDataDir,'/grassdb/quarry/PERMANENT/')
 grassLocation <<- paste0(userDataDir,'/grassdb/quarry/')
 
 # source functions
+print('loading functions...')
 source('rscript/general_functions.R')
-
+print('done!')
 # new CV grids ----------------------------------------------------
 # prep parameters for grass resamp.filter 
+print('generating cv params...')
 load(file='cvdev/gfilter.RDS')
 
 # revised cv parameters based on results of exploratory values above
@@ -55,14 +60,14 @@ cvGrids <-
       filtVals = gfilter.params$filtcomb_number
     ))
   )
-
+print('done!')
 # end new CV grids ------------------------------------------------
 
 # prepared data --------------------------------
-
+print('loading prepped data...')
 f <- 'data/prepData_alllocs_maxdiff01_smpper0.RDS'
 prepData <- readRDS(f)
-
+print('done!')
 # interpolation run --------------------------------------------
 
 # these calls establish workers for parallel processing and retrieve the id of
@@ -76,12 +81,24 @@ print('running interpolations...')
 st <- Sys.time()
 
 #!! if offSet = T the use pd$tiles$pol !!
+print('getting MPI cluster...')
 cl <- snow::getMPIcluster()
-#cl <- snow::makeMPIcluster(count=70)
-# cl <- makeCluster(mc <- getOption("cl.cores", 60), outfile='logs/cluster_out.txt')
+if (is.null(cl)) { 
+  print('getMPIcluster() failed...')
+  print('trying to make cluster...')
+  cl <- 
+    snow::makeMPIcluster(count=70,
+                         outfile='logs/cluster_out.txt')
+  }
+print('done!')
+
+print('sourcing functions and exporting vars on cluster...')
 clusterEvalQ(cl, source(paste0(getwd(),'/rscript/general_functions.R')))
 snow::clusterExport(cl, list=c('cvGrids','grassLocation','sessionTag',
                                'userDataDir','grassMapset'))
+print('done!')
+
+print('running interpolations...')
 prepDataTrunc <- prepData[1:70]
 datOut <- parLapply(cl, prepDataTrunc, function(pd) {
   interpolateRas(pd,
@@ -99,9 +116,10 @@ datOut <- parLapply(cl, prepDataTrunc, function(pd) {
                  )
   )
 })
-
+print('done!')
 # Clean up the cluster and release the relevant resources.
 stopCluster(cl)
+sink()
 mpi.quit()
 
 

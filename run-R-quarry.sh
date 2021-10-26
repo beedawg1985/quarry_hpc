@@ -19,16 +19,20 @@
 # NOTE: this directory must exist.
 
 # Load R/GRASS environment
+echo "running init.sh script..."
 source /home/tcrnbgh/quarry_hpc/init.sh
+echo "done!"
 
 # run script to make working directory
+echo "running makewd.sh script..."
 source /home/tcrnbgh/quarry_hpc/mkwd.sh
-
+echo "done!"
 # set working dir
 #$ -wd /home/tcrnbgh/Scratch/quarry_data
 
 # Run our MPI job. GERun is our wrapper for mpirun, which launches MPI jobs  
+echo "running gerun..."
 gerun RMPISNOW < /home/tcrnbgh/Scratch/quarry_data/quarry_hpc/rscript/2_interpolate_analyse_hpc.R > 
 snow.out.${JOB_ID}
-
+echo "done!"
 
