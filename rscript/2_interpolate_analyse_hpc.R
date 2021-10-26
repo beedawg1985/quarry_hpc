@@ -1,11 +1,6 @@
 #!/usr/bin/env Rscript
 setwd('/home/tcrnbgh/Scratch/quarry_data/quarry_hpc')
 
-# !!!!
-# have you run cp ./quarry_hpc/rscript/* ./Scratch/quarry_data/quarry_hpc/rscript/
-# system('cp /home/tcrnbgh/quarry_hpc/rscript/* /home/tcrnbgh/Scratch/quarry_data/quarry_hpc/rscript/')
-# to copy repo to scratch directory?
-
 # check if packages need installing
 list.of.packages <- c("tuneRanger","gstat","reshape2",
                       "e1071","caret","randomForest","stringr",
@@ -27,14 +22,7 @@ source('rscript/general_functions.R')
 
 # new CV grids ----------------------------------------------------
 # prep parameters for grass resamp.filter 
-f1 = c( 'gauss', 'normal', 'sinc', 'hann', 'hamming', 'blackman')
-f2 = c('hermite',  'lanczos1', 'lanczos2', 'lanczos3','box', 'bartlett')
-df <- rbind(data.frame(expand.grid(f1,f2)),data.frame(Var1 = f2, Var2 = NA))
-gfilter.params <- df %>% 
-  tidyr::unite('col3', c(Var1,Var2), sep = ',', na.rm = TRUE) %>% 
-  mutate_if(is.factor,as.character) %>% 
-  mutate(filtcomb_number = 1:nrow(.))
-save(gfilter.params,file='cvdev/gfilter.RDS')
+load(file='cvdev/gfilter.RDS')
 
 # revised cv parameters based on results of exploratory values above
 cvGrids <- 
@@ -70,7 +58,7 @@ cvGrids <-
 
 # end new CV grids ------------------------------------------------
 
-# or use existing prepared data --------------------------------
+# prepared data --------------------------------
 
 f <- 'data/prepData_alllocs_maxdiff01_smpper0.RDS'
 prepData <- readRDS(f)
@@ -88,14 +76,14 @@ print('running interpolations...')
 st <- Sys.time()
 
 #!! if offSet = T the use pd$tiles$pol !!
-cl <- getMPIcluster()
+cl <- snow::getMPIcluster()
 #cl <- snow::makeMPIcluster(count=70)
 # cl <- makeCluster(mc <- getOption("cl.cores", 60), outfile='logs/cluster_out.txt')
 clusterEvalQ(cl, source(paste0(getwd(),'/rscript/general_functions.R')))
 snow::clusterExport(cl, list=c('cvGrids','grassLocation','sessionTag',
                                'userDataDir','grassMapset'))
-
-datOut <- parLapply(cl, prepData[1:70], function(pd) {
+prepDataTrunc <- prepData[1:70]
+datOut <- parLapply(cl, prepDataTrunc, function(pd) {
   interpolateRas(pd,
                  maskPoly = pd$pol,
                  paramData=cvGrids,
@@ -111,6 +99,10 @@ datOut <- parLapply(cl, prepData[1:70], function(pd) {
                  )
   )
 })
+
+# Clean up the cluster and release the relevant resources.
+stopCluster(cl)
+mpi.quit()
 
 
 # clusterEvalQ (cl, traceback())
