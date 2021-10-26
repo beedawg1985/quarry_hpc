@@ -14,19 +14,14 @@
 # Select the MPI parallel environment with 32 processes
 #$ -pe mpi 70
 
-# Set the working directory to somewhere in your scratch space.  This is
-# necessary because the compute nodes cannot write to your $HOME
-# NOTE: this directory must exist.
-
 # Load R/GRASS environment
 echo "running init.sh script..."
 source /home/tcrnbgh/quarry_hpc/init.sh
 echo "done!"
 
-# run script to make working directory
-echo "running makewd.sh script..."
-source /home/tcrnbgh/quarry_hpc/mkwd.sh
-echo "done!"
+# Set the working directory to somewhere in your scratch space.  This is
+# necessary because the compute nodes cannot write to your $HOME
+# NOTE: this directory must exist.
 # set working dir
 #$ -wd /home/tcrnbgh/Scratch/quarry_data
 
