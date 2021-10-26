@@ -3,7 +3,7 @@ module purge
 module load beta-modules
 module load r/r-4.1.1_bc-3.13
 module load nano/2.4.2
-# required on computer nodes ?
+# required on compute nodes ?
 module unload udunits
 module load udunits/2.2.19
 module load gerun

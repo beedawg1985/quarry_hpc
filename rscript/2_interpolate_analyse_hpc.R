@@ -87,8 +87,10 @@ if (is.null(cl)) {
   print('getMPIcluster() failed...')
   print('trying to make cluster...')
   cl <- 
-    snow::makeMPIcluster(count=70,
-                         outfile='logs/cluster_out.txt')
+    snow::makeMPIcluster(count=35,
+                         outfile=paste0(getwd(),'/logs/cluster_out.txt'))
+  cl <- makeCluster(mc <- getOption("cl.cores", 35),
+                    outfile=paste0(getwd(),'/logs/cluster_out.txt'))
   }
 print('done!')
 
