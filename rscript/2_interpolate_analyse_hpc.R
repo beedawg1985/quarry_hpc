@@ -106,15 +106,14 @@ print(clusterCall(cl, function() Sys.info()))
 print('done!')
 
 print('sourcing functions and exporting vars on cluster...')
-clusterEvalQ(cl, source('/home/tcrnbgh/Scratch/quarry_data/quarry_hpc/rscript/general_functions.R'))
+snow::clusterEvalQ(cl, source('/home/tcrnbgh/Scratch/quarry_data/quarry_hpc/rscript/general_functions.R'))
 snow::clusterExport(cl, list=c('cvGrids','grassLocation','sessionTag',
                                'userDataDir','grassMapset'))
 print('done!')
 
 print('running interpolations...')
 prepDataTrunc <- prepData[1:70]
-datOut <- parLapply(cl, prepDataTrunc, function(pd) {
-  tryCatch({
+datOut <- snow::parLapply(cl, prepDataTrunc, function(pd) {
     interpolateRas(pd,
                    maskPoly = pd$pol,
                    paramData=cvGrids,
@@ -129,12 +128,6 @@ datOut <- parLapply(cl, prepDataTrunc, function(pd) {
                      'gspline'
                    )
     )
-  },
-  error=function(e) {
-    print(e)
-    sink()
-    stop(e)
-  })
 })
 print('done!')
 # Clean up the cluster and release the relevant resources.
