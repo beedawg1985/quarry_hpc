@@ -134,17 +134,51 @@ datOut <- snow::clusterApply(cl, prepDataTrunc, function(pd) {
   library(mgcv) 
   library(purrr)
   
-  interpolateRas <- function(pd,
-                             maskPoly, 
-                             paramData,
-                             testCV = T,
-                             outputDir = '/media/mal/working_files/quarry/',
-                             outputTag='testnew',
-                             gLoc='/home/barneyharris/user_quarry_data/grassdb/quarry/',
-                             # gMap='q1',
-                             intMethods=c('nn','idw','ok',
-                                          'rfsp','tin','gspline',
-                                          'gbicubic','gfilter') ) {
+  buffer.dist2 <- function(observations, predictionDomain, classes, width, ...) {
+    if(missing(width)){ width <- sqrt(areaSpatialGrid(predictionDomain)) }
+    if(!length(classes)==length(observations)){ stop("Length of 'observations' and 'classes' does not match.") }
+    ## remove classes without any points:
+    xg = summary(classes, maxsum=length(levels(classes)))
+    selg.levs = attr(xg, "names")[xg > 0]
+    
+    if(length(selg.levs)<length(levels(classes))){
+      fclasses <- as.factor(classes)
+      fclasses[which(!fclasses %in% selg.levs)] <- NA
+      classes <- droplevels(fclasses)
+    }
+    
+    ## derive buffer distances
+    s <- list(NULL)
+    
+    for(i in 1:length(levels(classes))) {
+      if (nrow(observations[which(classes==levels(classes)[i]),1]) > 0) {
+        
+        s[[i]] <- raster::distance(
+          rasterize(
+            observations[which(classes==levels(classes)[i]),1]@coords, y=raster(predictionDomain)),
+          width=width)
+      } else print(i)
+    }
+    s <- s[sapply(s, function(x){!is.null(x)})]
+    s <- brick(s)
+    s <- as(s, "SpatialPixelsDataFrame")
+    s <- s[predictionDomain@grid.index,]
+    return(s)
+  }
+  
+     maskPoly = pd$pol
+     paramData=cvGrids
+     gLoc = grassLocation
+     outputDir = '/home/tcrnbgh/Scratch/quarry_data/data_output'
+     testCV = T # = T for test run
+     outputTag = sessionTag
+     intMethods=c(
+       'rfsp',
+       'nn','idw','ok','tin',
+       'gfilter',
+       'gspline'
+     )
+  
     trainingData <- pd$foldA$train
     testData <- pd$foldA$all
     # object for storing run times
@@ -547,23 +581,7 @@ datOut <- snow::clusterApply(cl, prepDataTrunc, function(pd) {
          file=fout)
     print(paste0('saved file to... ',fout,
                  outputDir,'/intdat_',outputTag,'_polfid',pd$pol$fid,'.RDS'))
-    return(intTimes)
-  }
-  
-  interpolateRas(pd,
-                 maskPoly = pd$pol,
-                 paramData=cvGrids,
-                 gLoc = grassLocation,
-                 outputDir = '/home/tcrnbgh/Scratch/quarry_data/data_output',
-                 testCV = T, # = T for test run
-                 outputTag = sessionTag,
-                 intMethods=c(
-                   'rfsp',
-                   'nn','idw','ok','tin',
-                   'gfilter',
-                   'gspline'
-                 )
-                 )
+    intTimes
 })
 print('done!')
 # Clean up the cluster and release the relevant resources.

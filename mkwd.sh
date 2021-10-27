@@ -19,3 +19,4 @@ chmod +x /home/tcrnbgh/Scratch/quarry_data/quarry_hpc/python/GRASS_vrst.py
 chmod +x /home/tcrnbgh/Scratch/quarry_data/quarry_hpc/python/GRASS_bspline.py
 chmod +x /home/tcrnbgh/Scratch/quarry_data/quarry_hpc/python/GRASSoptimise.py
 chmod +x /home/tcrnbgh/Scratch/quarry_data/quarry_hpc/python/GRASS_resampfilter.py
+chmod +x /home/tcrnbgh/Scratch/quarry_data/quarry_hpc/python/processDEM.py
