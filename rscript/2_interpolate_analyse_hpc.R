@@ -114,20 +114,27 @@ print('done!')
 print('running interpolations...')
 prepDataTrunc <- prepData[1:70]
 datOut <- parLapply(cl, prepDataTrunc, function(pd) {
-  interpolateRas(pd,
-                 maskPoly = pd$pol,
-                 paramData=cvGrids,
-                 gLoc = grassLocation,
-                 outputDir = '/home/tcrnbgh/Scratch/quarry_data/data_output',
-                 testCV = T, # = T for test run
-                 outputTag = sessionTag,
-                 intMethods=c(
-                   'rfsp',
-                   'nn','idw','ok','tin',
-                   'gfilter',
-                   'gspline'
-                 )
-  )
+  tryCatch({
+    interpolateRas(pd,
+                   maskPoly = pd$pol,
+                   paramData=cvGrids,
+                   gLoc = grassLocation,
+                   outputDir = '/home/tcrnbgh/Scratch/quarry_data/data_output',
+                   testCV = T, # = T for test run
+                   outputTag = sessionTag,
+                   intMethods=c(
+                     'rfsp',
+                     'nn','idw','ok','tin',
+                     'gfilter',
+                     'gspline'
+                   )
+    )
+  },
+  error=function(e) {
+    print(e)
+    sink()
+    stop(e)
+  })
 })
 print('done!')
 # Clean up the cluster and release the relevant resources.
