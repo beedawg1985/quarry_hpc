@@ -533,14 +533,15 @@ datOut <- snow::clusterApply(cl, prepDataTrunc, function(pd) {
     }
     
     # grass params
-    gdb <- paste0(gLoc,Sys.getpid(),'/')
-    
+    gdb <- paste0(gLoc,pd$pol$fid,'/')
+    print(gdb)
     # @@@@ needed to prevent freezing on run 279 ?!? !!!!
     # paramData.c$gspline <- paramData.c$gspline %>%
     #   slice(10:nrow(.))
     # grass-based splines model ----
     # training.sf <- trainingData$sf
     # test.r <- testData$ras
+    
     if ('gspline' %in% intMethods) { 
       # write points for gspline
       st_write(trainingData$sf[,'elev'], 
