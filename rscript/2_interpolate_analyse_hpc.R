@@ -542,11 +542,13 @@ datOut <- snow::clusterApply(cl, prepDataTrunc, function(pd) {
     # training.sf <- trainingData$sf
     # test.r <- testData$ras
     
-    if ('gspline' %in% intMethods) { 
+    if ('gspline' %in% intMethods) {
       # write points for gspline
+      if (file.exists(paste0('vector/intout_',maskPoly$fid,'_training.gpkg'))) {
+        file.remove(paste0('vector/intout_',maskPoly$fid,'_training.gpkg'))
+      }
       st_write(trainingData$sf[,'elev'], 
-               paste0('vector/intout_',maskPoly$fid,'_training.gpkg'),
-               delete_dsn=T)
+               paste0('vector/intout_',maskPoly$fid,'_training.gpkg'))
       vecLoc <- paste0(getwd(),'/vector/intout_',maskPoly$fid,'_training.gpkg')
       
       system(paste0(
@@ -706,8 +708,7 @@ datOut <- snow::clusterApply(cl, prepDataTrunc, function(pd) {
     fout <- paste0(outputDir,'/intdat_',outputTag,'_polfid',pd$pol$fid,'.RDS')
     save(dat,
          file=fout)
-    print(paste0('saved file to... ',fout,
-                 outputDir,'/intdat_',outputTag,'_polfid',pd$pol$fid,'.RDS'))
+    print(paste0('saved file to... ',fout))
     intTimes
 })
 print('done!')
