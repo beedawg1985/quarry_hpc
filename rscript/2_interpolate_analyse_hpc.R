@@ -1,22 +1,3 @@
-assign(".MPIrun", function() {
-  if (mpi.comm.rank(0) > 0){
-    sys.load.image(".RData",TRUE)
-    .First.sys()
-    sink(file="/dev/null")
-    slaveLoop(makeMPImaster())
-    mpi.quit()
-  }
-  else {
-    makeMPIcluster()
-    .Last <<- function(){
-      cl <- getMPIcluster()
-      if (! is.null(cl))
-        stopCluster(cl)
-      mpi.quit()
-    }
-  }
-}, envir = globalenv())
-
 library(Rmpi)
 library(snow)
 
@@ -36,6 +17,7 @@ list.of.packages <- c("tuneRanger","gstat","reshape2",
 new.packages <- list.of.packages[!(list.of.packages %in% installed.packages()[,"Package"])]
 if(length(new.packages)) install.packages(new.packages,
                                           lib="/home/tcrnbgh/R/x86_64-pc-linux-gnu-library/4.1")
+
 print('done!')
 # set envs
 userDataDir <<- '/home/tcrnbgh/Scratch/quarry_data'
@@ -44,6 +26,7 @@ grassLocation <<- paste0(userDataDir,'/grassdb/quarry/')
 
 # source functions
 print('loading functions...')
+
 source('rscript/general_functions.R')
 print('done!')
 
@@ -107,19 +90,23 @@ st <- Sys.time()
 print('getting MPI cluster...')
 
 cl <- snow::getMPIcluster()
-if (is.null(cl)) { 
-  print('getMPIcluster() failed...')
-  print('trying to make cluster...')
-  cl <- 
-    snow::makeMPIcluster(count=35,
-                         outfile=paste0(getwd(),'/logs/cluster_out.txt'))
-  cl <- makeCluster(mc <- getOption("cl.cores", 35),
-                    outfile=paste0(getwd(),'/logs/cluster_out.txt'))
-  }
+
+# Display info about each process in the cluster
+print(clusterCall(cl, function() Sys.info()))
+
+# if (is.null(cl)) { 
+#   print('getMPIcluster() failed...')
+#   print('trying to make cluster...')
+#   cl <- 
+#     snow::makeMPIcluster(count=35,
+#                          outfile=paste0(getwd(),'/logs/cluster_out.txt'))
+#   cl <- makeCluster(mc <- getOption("cl.cores", 35),
+#                     outfile=paste0(getwd(),'/logs/cluster_out.txt'))
+#   }
 print('done!')
 
 print('sourcing functions and exporting vars on cluster...')
-clusterEvalQ(cl, source(paste0(getwd(),'/rscript/general_functions.R')))
+clusterEvalQ(cl, source('/home/tcrnbgh/Scratch/quarry_data/quarry_hpc/rscript/general_functions.R'))
 snow::clusterExport(cl, list=c('cvGrids','grassLocation','sessionTag',
                                'userDataDir','grassMapset'))
 print('done!')
