@@ -153,6 +153,102 @@ datOut <- snow::clusterApply(cl, prepDataTrunc, function(pd) {
   
   '%!in%' <- function(x,y)!('%in%'(x,y))
   
+  compareInt <- function(intRasters, # list of interpolated rasters
+                         foldedRas, # the test/training rasters (raster A, latest)
+                         tiledRas # another raster to compare int surfaces with (raster B, earliest)
+  ) { 
+    
+    # the earlier survey to compare against
+    compareRas <- tiledRas$b
+    # a polygon to exclude from testErr calculations
+    maskPoly <- tiledRas$pol
+    
+    frtest <- as(foldedRas$test,'Raster')
+    
+    foldedRas$test <- frtest[[1]]
+    
+    if (class(compareRas)=='stars') {
+      compareRas.r <- as(compareRas, 'Raster')
+      compareRas.r <- compareRas.r[[1]]
+    }
+    
+    # this ensures the extent of the comparison raster (older survey)
+    # is the same as the interpolated surfaces. Errors can occur when
+    # earlier survey did not quite cover the same cells as the later one.
+    compareRas.r <- mask(crop(extend(compareRas.r,foldedRas$all$ras[[1]]),
+                              foldedRas$all$ras[[1]]),
+                         foldedRas$all$ras[[1]])
+    
+    # training error is difference between original training data and modeled training data
+    # test error is difference between original test data and modeled test data
+    
+    # test data below is essentially the original raster 
+    # ep <- pd$pol
+    # fr <- foldedRas
+    # cr <- compareRas.r
+    compareEach <- function(raslist,fr,cr,ep=NULL) {
+      
+      # raslist <- intRasters$ras$`GRASS Regularized Splines Tension`
+      # interpolated <- raslist[[1]]
+      compFunction <- function(interpolated) {
+        
+        trainingErr.r <- mask(interpolated,fr$train$ras[[1]]) - 
+          fr$train$ras[[1]]
+        
+        testErr.r <- mask(interpolated,fr$test) - fr$test
+        compareDiff <- interpolated - cr
+        
+        out <- list(
+          trainingErr.r = trainingErr.r,
+          testErr.r = testErr.r,
+          compareDiff = compareDiff)
+        
+        if (!is.null(ep)) {
+          ep.r <- fasterize::fasterize(ep, fr$test)
+          out$testErr.ex.r <- mask(interpolated,fr$test) - 
+            mask(fr$test,ep.r,inverse=T)
+          out$testErr.inc.r <- mask(interpolated,fr$test) - 
+            mask(fr$test,ep.r)
+          out$compareDiff.inc.r <- interpolated - mask(cr,ep.r)
+          out$compareDiff.ex.r <- interpolated - mask(cr,ep.r,inverse=T)
+        }
+        
+        return(out)
+      }
+      
+      updatedRas <- raslist %>% map(~compFunction(.x))
+      # raslist$ras.comp <- updatedRas
+      # return(raslist)
+    }
+    
+    diffMaps <- intRasters$ras %>% 
+      map(~compareEach(.x, 
+                       fr = foldedRas,
+                       cr = compareRas.r,
+                       ep = maskPoly))
+    
+    # diffMaps$`Nearest Neighbor`$compare$compareDiff
+    # plot(stack(diffMaps$`Triangular Irregular Surface`))
+    # r <- diffMaps$`Ordinary Kriging`$trainingErr.r
+    calcRMSEfromRas <- function(r) sqrt(cellStats(r^2,mean))
+    
+    diffRMSEs <- lapply(names(diffMaps), function(x) {
+      diffRMSEs <- diffMaps[[x]] %>% map_df(map, calcRMSEfromRas) %>% 
+        mutate(int_method = x,
+               run_no = 1:nrow(.))
+    }) %>% bind_rows()
+    
+    # add pol fid if pol provided
+    if (!is.null(maskPoly)) diffRMSEs <- diffRMSEs %>% 
+      mutate(intpol_fid = maskPoly$fid)
+    
+    return(list(orig.maps = intRasters,
+                # diff.maps = diffMaps,
+                tiles = tiledRas,
+                rmses = diffRMSEs))
+  }
+  
+  
   buffer.dist2 <- function(observations, predictionDomain, classes, width, ...) {
     if(missing(width)){ width <- sqrt(areaSpatialGrid(predictionDomain)) }
     if(!length(classes)==length(observations)){ stop("Length of 'observations' and 'classes' does not match.") }
@@ -586,6 +682,8 @@ datOut <- snow::clusterApply(cl, prepDataTrunc, function(pd) {
         mask(crop(extend(r,testData$ras[[1]]),testData$ras[[1]]),
              testData$ras[[1]])
       }))
+    cat('completed raster list', file=paste0('rasterlist_',pd$pol$fid,'.txt'))
+    
     
     # output parameters as melted df
     
@@ -602,6 +700,8 @@ datOut <- snow::clusterApply(cl, prepDataTrunc, function(pd) {
     dat <- compareInt(intRasters=intA,
                       foldedRas=pd$foldA,
                       tiledRas=pd$tiles)
+    cat('completed compareInt', file=paste0('compareInt_',pd$pol$fid,'.txt'))
+    
     fout <- paste0(outputDir,'/intdat_',outputTag,'_polfid',pd$pol$fid,'.RDS')
     save(dat,
          file=fout)
