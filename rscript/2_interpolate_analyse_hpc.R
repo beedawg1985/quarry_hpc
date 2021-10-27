@@ -141,6 +141,9 @@ datOut <- snow::clusterApply(cl, prepDataTrunc, function(pd) {
   library(mgcv) 
   library(purrr)
   
+  setwd('/home/tcrnbgh/Scratch/quarry_data/quarry_hpc')
+  sink(paste0('./2_interpolate_analyse_hpc_sinkout_site',pd$pol$fid,'.txt'))
+  
   which.median <- function(x) which.min(abs(x - median(x)))
   
   # useful print paste function
@@ -288,6 +291,7 @@ datOut <- snow::clusterApply(cl, prepDataTrunc, function(pd) {
       
       intTimes$RF <- Sys.time()-st
       rasterlist$`Random Forest SP` <- list(interp_RF$rfSp)
+      cat('completed rfSp', file=paste0('rfSp_',pd$pol$fid,'.txt'))
     }
     
     if ('tin' %in% intMethods) {
@@ -307,6 +311,7 @@ datOut <- snow::clusterApply(cl, prepDataTrunc, function(pd) {
       intTimes$TIN <- Sys.time()-st
       
       rasterlist$`Triangular Irregular Surface` <- list(interp_TIN)
+      cat('completed TIN', file=paste0('TIN_',pd$pol$fid,'.txt'))
     }
     
     # parameterised interpolation models
@@ -375,6 +380,7 @@ datOut <- snow::clusterApply(cl, prepDataTrunc, function(pd) {
         intTimes$NN[[y]] <- t
       }
       rasterlist$`Nearest Neighbor` <- interp_NNs
+      cat('completed NN', file=paste0('NN_',pd$pol$fid,'.txt'))
     }
     
     if ('idw' %in% intMethods) { 
@@ -400,6 +406,7 @@ datOut <- snow::clusterApply(cl, prepDataTrunc, function(pd) {
         intTimes$IDW[[y]] <- t
       }
       rasterlist$`Inverse Distance Weighted` <- interp_IDWs
+      cat('completed IDW', file=paste0('IDW_',pd$pol$fid,'.txt'))
     }
     
     if ('ok' %in% intMethods) {
@@ -426,6 +433,7 @@ datOut <- snow::clusterApply(cl, prepDataTrunc, function(pd) {
         intTimes$OK[[y]] <- t
       }
       rasterlist$`Ordinary Kriging` <- interp_OKs
+      cat('completed OK', file=paste0('OK_',pd$pol$fid,'.txt'))
     }
     
     # grass params
@@ -497,6 +505,7 @@ datOut <- snow::clusterApply(cl, prepDataTrunc, function(pd) {
         intTimes$GSPLINE[[y]] <- t
       }
       rasterlist$`GRASS Regularized Splines Tension` <- interp_GSPLINEs
+      cat('completed GSPLINE', file=paste0('GSPLINE_',pd$pol$fid,'.txt'))
     }
     
     
@@ -568,6 +577,7 @@ datOut <- snow::clusterApply(cl, prepDataTrunc, function(pd) {
         intTimes$GFILTER[[y]] <- t
       }
       rasterlist$`GRASS Resampled Filter` <- interp_GFILTERs
+      cat('completed GFILTER', file=paste0('GFILTER_',pd$pol$fid,'.txt'))
     }
     
     # gen list
