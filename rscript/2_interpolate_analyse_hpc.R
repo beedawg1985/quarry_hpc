@@ -15,10 +15,16 @@ list.of.packages <- c("tuneRanger","gstat","reshape2",
                       "mgcv","purrr","furrr","doParallel",
                       "future.apply", "snow")
 new.packages <- list.of.packages[!(list.of.packages %in% installed.packages()[,"Package"])]
-if(length(new.packages)) install.packages(new.packages,
-                                          lib="/home/tcrnbgh/R/x86_64-pc-linux-gnu-library/4.1")
-
+if(length(new.packages)) {
+  print('following packages need installing...')
+  print(new.packages)
+  print('installing...')
+  install.packages(new.packages,
+                   lib="/home/tcrnbgh/R/x86_64-pc-linux-gnu-library/4.1")
+  print('done!')
+} else print('no new packages need installing!')
 print('done!')
+
 # set envs
 userDataDir <<- '/home/tcrnbgh/Scratch/quarry_data'
 grassMapset <<- paste0(userDataDir,'/grassdb/quarry/PERMANENT/')
@@ -125,6 +131,7 @@ datOut <- snow::clusterApply(cl, prepDataTrunc, function(pd) {
   library(stringr)
   library(stars)
   library(sf)
+  library(sp)
   library(dplyr)
   library(gdalUtils)
   library(raster)
@@ -133,6 +140,15 @@ datOut <- snow::clusterApply(cl, prepDataTrunc, function(pd) {
   library(interp)
   library(mgcv) 
   library(purrr)
+  
+  which.median <- function(x) which.min(abs(x - median(x)))
+  
+  # useful print paste function
+  pp <- function(...) {
+    print(paste0(list(...),collapse=''))
+  }
+  
+  '%!in%' <- function(x,y)!('%in%'(x,y))
   
   buffer.dist2 <- function(observations, predictionDomain, classes, width, ...) {
     if(missing(width)){ width <- sqrt(areaSpatialGrid(predictionDomain)) }
