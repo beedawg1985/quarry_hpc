@@ -114,7 +114,7 @@ print('done!')
 print('running interpolations...')
 prepDataTrunc <- prepData[1:70]
 
-datOut <- clusterApply(cl, prepDataTrunc, function(pd) {
+datOut <- snow::clusterApply(cl, prepDataTrunc, function(pd) {
     interpolateRas(pd,
                    maskPoly = pd$pol,
                    paramData=cvGrids,
