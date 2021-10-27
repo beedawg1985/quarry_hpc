@@ -27,6 +27,6 @@ echo "done!"
 
 # Run our MPI job. GERun is our wrapper for mpirun, which launches MPI jobs  
 echo "running gerun..."
-gerun RMPISNOW < /home/tcrnbgh/Scratch/quarry_data/quarry_hpc/rscript/2_interpolate_analyse_hpc.R
+gerun /home/tcrnbgh/quarry_hpc/RMPISNOW_bgh < /home/tcrnbgh/Scratch/quarry_data/quarry_hpc/rscript/2_interpolate_analyse_hpc.R
 echo "done!"
 
