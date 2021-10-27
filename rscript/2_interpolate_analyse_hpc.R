@@ -116,6 +116,24 @@ prepDataTrunc <- prepData[1:70]
 
 datOut <- snow::clusterApply(cl, prepDataTrunc, function(pd) {
   
+  library(tuneRanger)
+  library(gstat)
+  library(reshape2)
+  library(e1071)
+  library(caret)
+  library(randomForest)
+  library(stringr)
+  library(stars)
+  library(sf)
+  library(dplyr)
+  library(gdalUtils)
+  library(raster)
+  library(automap)
+  library(fields)
+  library(interp)
+  library(mgcv) 
+  library(purrr)
+  
   interpolateRas <- function(pd,
                              maskPoly, 
                              paramData,
