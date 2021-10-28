@@ -28,7 +28,7 @@ print('done!')
 # set envs
 userDataDir <<- '/home/tcrnbgh/Scratch/quarry_data'
 grassMapset <<- paste0(userDataDir,'/grassdb/quarry/PERMANENT/')
-grassLocation <<- paste0(userDataDir,'/grassdb/quarry/')
+grassLocation <<- paste0(userDataDir,'/grassdb/quarry')
 
 # source functions
 print('loading functions...')
@@ -533,11 +533,18 @@ datOut <- snow::clusterApply(cl, prepDataTrunc, function(pd) {
     }
     
     # grass params
-    gdb <- paste0(gLoc,pd$pol$fid,'/')
+    # generate unique grass location name
+    gnLoc <- paste0(gLoc,'_pol',pd$pol$fid)
+    
+    if (dir.exists(gnLoc)) unlink(gnLoc,recursive=T)
+    gdb <- paste0(gnLoc,'/PERMANENT')
+    # make location with grass call
+    system(paste0('grass -c /home/tcrnbgh/quarry_hpc/vector/init_vector.gpkg ',gnLoc,' -e'))
+    system(paste0(
+      'grass ',gdb,' --exec g.proj datum=osgb36 -c'
+    ))
     print(gdb)
-    # @@@@ needed to prevent freezing on run 279 ?!? !!!!
-    # paramData.c$gspline <- paramData.c$gspline %>%
-    #   slice(10:nrow(.))
+    
     # grass-based splines model ----
     # training.sf <- trainingData$sf
     # test.r <- testData$ras
@@ -552,13 +559,7 @@ datOut <- snow::clusterApply(cl, prepDataTrunc, function(pd) {
       vecLoc <- paste0(getwd(),'/vector/intout_',maskPoly$fid,'_training.gpkg')
       
       system(paste0(
-        'grass ',gdb,' --exec g.proj datum=osgb36 -c'
-      ))
-      
-      if (dir.exists(gdb)) unlink(gdb,recursive=T)
-      
-      system(paste0(
-        'grass -c ',gdb,' --exec v.in.ogr input=',vecLoc,' output=points -o --o'
+        'grass ',gdb,' --exec v.in.ogr input=',vecLoc,' output=points -o --o'
       ))
       
       m <- mask(testData$ras[[1]],trainingData$ras[[1]],inverse=T)
@@ -598,7 +599,7 @@ datOut <- snow::clusterApply(cl, prepDataTrunc, function(pd) {
         interp_GSPLINEs[[y]] <- raster::merge(r,trainingData$ras[[1]])
         file.remove(paste0('raster/gspline_int_intfid_',pdata$intpol_fid,
                            '_runnum_',x,'.tif'))
-        tdiff <- Sys.time()-st
+        tdiff <- Sys.time()-st  
         t <- list(val = tdiff,
                   unit_chr = units(tdiff))
         intTimes$GSPLINE[[y]] <- t
@@ -611,16 +612,14 @@ datOut <- snow::clusterApply(cl, prepDataTrunc, function(pd) {
     if ('gfilter' %in% intMethods) {
       # prepare rasters
       mLoc <- paste0(getwd(),'/raster/intout_',maskPoly$fid,'_ras_training.tif')
-      # not sure why rasters merged??
-      allRas <- merge(trainingData$ras[[1]],testData$ras[[1]]) # weird?
+      # not sure why rasters were merged??
+      # allRas <- merge(trainingData$ras[[1]],testData$ras[[1]]) # weird?
       # overwritten below:
       allRas <- trainingData$ras[[1]]
       
       writeRaster(allRas, 
                   mLoc,
                   overwrite=T)
-      
-      if (dir.exists(gdb)) unlink(gdb,recursive=T)
       
       system(paste0(
         'grass -c ',gdb,' --exec r.in.gdal input=',mLoc,' output=allRas -o --o'
@@ -679,6 +678,8 @@ datOut <- snow::clusterApply(cl, prepDataTrunc, function(pd) {
       cat('completed GFILTER', file=paste0('GFILTER_',pd$pol$fid,'.txt'))
     }
     
+    if (dir.exists(gdb)) unlink(gdb,recursive=T)
+    
     # gen list
     rasterlist <- rasterlist %>% 
       map( ~map(.x, .f = function(r) {
@@ -689,7 +690,6 @@ datOut <- snow::clusterApply(cl, prepDataTrunc, function(pd) {
     
     
     # output parameters as melted df
-    
     paramsCv <- paramData.c %>% 
       map_df(~reshape2::melt(.x,
                              id.vars=c('run_no','intpol_fid',
