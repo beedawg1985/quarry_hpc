@@ -31,13 +31,10 @@ sink('./2_interpolate_analyse_hpc_sinkout.txt')
 # source('rscript/general_functions.R')
 # print('done!')
 
-# prepare data --------------------------------
+# prepared data --------------------------------
 print('loading prepped data...')
 f <- 'data/prepData_alllocs_maxdiff01_smpper0.RDS'
 prepData <- readRDS(f)
-print('done!')
-print('truncating prepData...')
-prepDataTrunc <- prepData[1:70]
 print('done!')
 
 # interpolation run --------------------------------------------
@@ -47,11 +44,29 @@ st <- Sys.time()
 #!! if offSet = T the use pd$tiles$pol !!
 print('getting MPI cluster...')
 cl <- snow::getMPIcluster()
-print('done!')
 # Display info about each process in the cluster
 print(clusterCall(cl, function() Sys.info()))
 
+# if (is.null(cl)) {
+#   print('getMPIcluster() failed...')
+#   print('trying to make cluster...')
+#   cl <-
+#     snow::makeMPIcluster(count=35,
+#                          outfile=paste0(getwd(),'/logs/cluster_out.txt'))
+#   cl <- makeCluster(mc <- getOption("cl.cores", 35),
+#                     outfile=paste0(getwd(),'/logs/cluster_out.txt'))
+#   }
+print('done!')
+
+print('sourcing functions and exporting vars on cluster...')
+# snow::clusterEvalQ(cl, source('/home/tcrnbgh/Scratch/quarry_data/quarry_hpc/rscript/general_functions.R'))
+snow::clusterExport(cl, list=c('cvGrids','grassLocation','sessionTag',
+                               'userDataDir','grassMapset'))
+print('done!')
+
 print('running interpolations...')
+prepDataTrunc <- prepData[1:70]
+
 datOut <- snow::clusterApply(cl, prepDataTrunc, function(pd) {
   
   library(tuneRanger)
