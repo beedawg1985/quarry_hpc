@@ -35,6 +35,7 @@ runNo = sys.argv[3]
 polfid = sys.argv[4]
 outputDir = sys.argv[5]
 
+attempts = 0
 while attempts < 6:
   try:
     runInt(radVal,filterVal,runNo,polfid,outputDir)
