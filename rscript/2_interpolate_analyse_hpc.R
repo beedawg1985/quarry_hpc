@@ -281,7 +281,7 @@ datOut <- snow::clusterApply(cl, prepDataTrunc, function(pd) {
     return(s)
   }
   
-     maskPoly = pd$pol
+  maskPoly = pd$pol
      paramData=cvGrids
      gLoc = grassLocation
      outputDir = '/home/tcrnbgh/Scratch/quarry_data/data_output'
@@ -293,7 +293,7 @@ datOut <- snow::clusterApply(cl, prepDataTrunc, function(pd) {
        'gfilter',
        'gspline'
      )
-  
+
     trainingData <- pd$foldA$train
     testData <- pd$foldA$all
     # object for storing run times
@@ -554,6 +554,8 @@ datOut <- snow::clusterApply(cl, prepDataTrunc, function(pd) {
       if (file.exists(paste0('vector/intout_',maskPoly$fid,'_training.gpkg'))) {
         file.remove(paste0('vector/intout_',maskPoly$fid,'_training.gpkg'))
       }
+      st_crs(trainingData$sf) <- st_crs(27700)
+      
       st_write(trainingData$sf[,'elev'], 
                paste0('vector/intout_',maskPoly$fid,'_training.gpkg'))
       vecLoc <- paste0(getwd(),'/vector/intout_',maskPoly$fid,'_training.gpkg')
@@ -564,7 +566,11 @@ datOut <- snow::clusterApply(cl, prepDataTrunc, function(pd) {
       
       m <- mask(testData$ras[[1]],trainingData$ras[[1]],inverse=T)
       mLoc <- paste0(getwd(),'/raster/intout_',maskPoly$fid,'_ras_testmask.tif')
-      writeRaster(m, mLoc,
+      
+      m.new <- st_as_stars(m) %>% 
+        st_set_crs(st_crs(27700)) %>% as(.,'Raster')
+      
+      writeRaster(m.new, mLoc,
                   overwrite=T)
       system(paste0(
         'grass ',gdb,' --exec r.in.gdal input=',mLoc,' output=testMask -o --o'
