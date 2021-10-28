@@ -263,8 +263,10 @@ datOut <- snow::clusterApply(cl, prepDataTrunc, function(pd) {
       return(s)
     }
   
+    # interpolation function -----
+    
     maskPoly = pd$pol
-    paramData=cvGrids
+    paramData = cvGrids
     gLoc = grassGISDBASE
     outputDir = '/home/tcrnbgh/Scratch/quarry_data/data_output'
     testCV = T # = T for test run
@@ -516,8 +518,7 @@ datOut <- snow::clusterApply(cl, prepDataTrunc, function(pd) {
     
     # grass params
     # generate unique grass location name
-    gnLoc <- paste0(gLoc,'_pol',pd$pol$fid)
-    
+    gnLoc <- paste0(gLoc,'/grass_pol',pd$pol$fid)
     if (dir.exists(gnLoc)) unlink(gnLoc,recursive=T)
     gdb <- paste0(gnLoc,'/PERMANENT')
     
@@ -555,6 +556,7 @@ datOut <- snow::clusterApply(cl, prepDataTrunc, function(pd) {
       
       writeRaster(m.new, mLoc,
                   overwrite=T)
+      
       system(paste0(
         'grass ',gdb,' --exec r.in.gdal input=',mLoc,' output=testMask -o --o'
       ))
@@ -584,16 +586,17 @@ datOut <- snow::clusterApply(cl, prepDataTrunc, function(pd) {
         )
         print('finished executing grass call...')
         print('reading grass output raster...')
-        r <- raster(paste0('raster/gspline_int_intfid_',pdata$intpol_fid,
-                           '_runnum_',x,'.tif'))
+        r <- readAll(raster(paste0('raster/gspline_int_intfid_',pdata$intpol_fid,
+                           '_runnum_',x,'.tif')))
         print('done!')
         interp_GSPLINEs[[y]] <- raster::merge(r,trainingData$ras[[1]])
-        file.remove(paste0('raster/gspline_int_intfid_',pdata$intpol_fid,
-                           '_runnum_',x,'.tif'))
+        # file.remove(paste0('raster/gspline_int_intfid_',pdata$intpol_fid,
+        #                    '_runnum_',x,'.tif'))
         tdiff <- Sys.time()-st  
         t <- list(val = tdiff,
                   unit_chr = units(tdiff))
         intTimes$GSPLINE[[y]] <- t
+        Sys.sleep(2)
       }
       rasterlist$`GRASS Regularized Splines Tension` <- interp_GSPLINEs
       cat('completed GSPLINE', file=paste0('GSPLINE_',pd$pol$fid,'.txt'))
@@ -671,12 +674,13 @@ datOut <- snow::clusterApply(cl, prepDataTrunc, function(pd) {
         crs(r) <- crs(testData$ras[[1]])
         
         interp_GFILTERs[[y]] <- r
-        file.remove(paste0('raster/gfilter_int_intfid_',pdata$intpol_fid,
-                           '_runnum_',x,'.tif'))
+        # file.remove(paste0('raster/gfilter_int_intfid_',pdata$intpol_fid,
+        #                    '_runnum_',x,'.tif'))
         tdiff <- Sys.time()-st
         t <- list(val = tdiff,
                   unit_chr = units(tdiff))
         intTimes$GFILTER[[y]] <- t
+        Sys.sleep(2)
       }
       rasterlist$`GRASS Resampled Filter` <- interp_GFILTERs
       cat('completed GFILTER', file=paste0('GFILTER_',pd$pol$fid,'.txt'))
