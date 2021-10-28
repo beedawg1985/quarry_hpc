@@ -4,26 +4,26 @@ library(snow)
 setwd('/home/tcrnbgh/Scratch/quarry_data/quarry_hpc')
 sink('./2_interpolate_analyse_hpc_sinkout.txt')
 
-# check if packages need installing
-print('checking packages...')
-.libPaths(c('/home/tcrnbgh/R/x86_64-pc-linux-gnu-library/4.1',
-            .libPaths()))
-list.of.packages <- c("tuneRanger","gstat","reshape2",
-                      "e1071","caret","randomForest","stringr",
-                      "stars","sf","dplyr","gdalUtils",
-                      "raster","automap","fields","interp",
-                      "mgcv","purrr","furrr","doParallel",
-                      "future.apply", "snow")
-new.packages <- list.of.packages[!(list.of.packages %in% installed.packages()[,"Package"])]
-if(length(new.packages)) {
-  print('following packages need installing...')
-  print(new.packages)
-  print('installing...')
-  install.packages(new.packages,
-                   lib="/home/tcrnbgh/R/x86_64-pc-linux-gnu-library/4.1")
-  print('done!')
-} else print('no new packages need installing!')
-print('done!')
+# # check if packages need installing
+# print('checking packages...')
+# .libPaths(c('/home/tcrnbgh/R/x86_64-pc-linux-gnu-library/4.1',
+#             .libPaths()))
+# list.of.packages <- c("tuneRanger","gstat","reshape2",
+#                       "e1071","caret","randomForest","stringr",
+#                       "stars","sf","dplyr","gdalUtils",
+#                       "raster","automap","fields","interp",
+#                       "mgcv","purrr","furrr","doParallel",
+#                       "future.apply", "snow")
+# new.packages <- list.of.packages[!(list.of.packages %in% installed.packages()[,"Package"])]
+# if(length(new.packages)) {
+#   print('following packages need installing...')
+#   print(new.packages)
+#   print('installing...')
+#   install.packages(new.packages,
+#                    lib="/home/tcrnbgh/R/x86_64-pc-linux-gnu-library/4.1")
+#   print('done!')
+# } else print('no new packages need installing!')
+# print('done!')
 
 # set envs
 userDataDir <<- '/home/tcrnbgh/Scratch/quarry_data'
@@ -31,49 +31,10 @@ grassMapset <<- paste0(userDataDir,'/grassdb/quarry/PERMANENT/')
 grassLocation <<- paste0(userDataDir,'/grassdb/quarry')
 
 # source functions
-print('loading functions...')
-
-source('rscript/general_functions.R')
-print('done!')
-
-# new CV grids ----------------------------------------------------
-# prep parameters for grass resamp.filter 
-print('generating cv params...')
-load(file='cvdev/gfilter.RDS')
-
-# revised cv parameters based on results of exploratory values above
-cvGrids <- 
-  list(
-    nn = data.frame(expand.grid(
-      nmaxVals = seq(1,100,by=2),
-      nminVals = 1
-    )),
-    idw = data.frame(expand.grid(
-      nmaxVals = seq(2,100,by=2),
-      nminVals = 1,
-      idpVals = seq(0.2,10,by=0.2)
-    )),
-    ok = data.frame(expand.grid(
-      nmaxVals = seq(1,100,by=2),
-      nminVals = 1
-    )),
-    gspline = data.frame(expand.grid(
-      tensionVals = c(seq(0.0001,0.1,by=0.002),
-                      seq(0.15,0.7,by=0.05)),
-      smoothVals = seq(2,30,by=5),
-      nminVals = seq(30,150,by=20)
-    )),
-    gbicubic = data.frame(expand.grid(
-      stepVals = seq(1,20,by=1),
-      lamVals = c(seq(0.0001,0.1,by=0.005),seq(0.1,1.4,by=0.1))
-    )),
-    gfilter = data.frame(expand.grid(
-      radVals = seq(5,50,by=5),
-      filtVals = gfilter.params$filtcomb_number
-    ))
-  )
-print('done!')
-# end new CV grids ------------------------------------------------
+# print('loading functions...')
+# 
+# source('rscript/general_functions.R')
+# print('done!')
 
 # prepared data --------------------------------
 print('loading prepped data...')
@@ -87,23 +48,19 @@ print('done!')
 # id, so each worker simultanesouly processes data in a single mapset to avoid 
 # conflicts.
 # run
-sessionTag <- str_replace(basename(f),'.RDS','')
-sessionTag <- paste0(sessionTag,'')
 print('running interpolations...')
 st <- Sys.time()
 
 #!! if offSet = T the use pd$tiles$pol !!
 print('getting MPI cluster...')
-
 cl <- snow::getMPIcluster()
-
 # Display info about each process in the cluster
 print(clusterCall(cl, function() Sys.info()))
 
-# if (is.null(cl)) { 
+# if (is.null(cl)) {
 #   print('getMPIcluster() failed...')
 #   print('trying to make cluster...')
-#   cl <- 
+#   cl <-
 #     snow::makeMPIcluster(count=35,
 #                          outfile=paste0(getwd(),'/logs/cluster_out.txt'))
 #   cl <- makeCluster(mc <- getOption("cl.cores", 35),
@@ -141,8 +98,50 @@ datOut <- snow::clusterApply(cl, prepDataTrunc, function(pd) {
   library(mgcv) 
   library(purrr)
   
+  sessionTag <- str_replace(basename(f),'.RDS','')
+  sessionTag <- paste0(sessionTag,'')
+  
   setwd('/home/tcrnbgh/Scratch/quarry_data/quarry_hpc')
   sink(paste0('./2_interpolate_analyse_hpc_sinkout_site',pd$pol$fid,'.txt'))
+  
+  # new CV grids ----------------------------------------------------
+  # prep parameters for grass resamp.filter 
+  print('generating cv params...')
+  load(file='cvdev/gfilter.RDS')
+  
+  # revised cv parameters based on results of exploratory values above
+  cvGrids <- 
+    list(
+      nn = data.frame(expand.grid(
+        nmaxVals = seq(1,100,by=2),
+        nminVals = 1
+      )),
+      idw = data.frame(expand.grid(
+        nmaxVals = seq(2,100,by=2),
+        nminVals = 1,
+        idpVals = seq(0.2,10,by=0.2)
+      )),
+      ok = data.frame(expand.grid(
+        nmaxVals = seq(1,100,by=2),
+        nminVals = 1
+      )),
+      gspline = data.frame(expand.grid(
+        tensionVals = c(seq(0.0001,0.1,by=0.002),
+                        seq(0.15,0.7,by=0.05)),
+        smoothVals = seq(2,30,by=5),
+        nminVals = seq(30,150,by=20)
+      )),
+      gbicubic = data.frame(expand.grid(
+        stepVals = seq(1,20,by=1),
+        lamVals = c(seq(0.0001,0.1,by=0.005),seq(0.1,1.4,by=0.1))
+      )),
+      gfilter = data.frame(expand.grid(
+        radVals = seq(5,50,by=5),
+        filtVals = gfilter.params$filtcomb_number
+      ))
+    )
+  print('done!')
+  # end new CV grids ------------------------------------------------
   
   which.median <- function(x) which.min(abs(x - median(x)))
   
@@ -152,6 +151,10 @@ datOut <- snow::clusterApply(cl, prepDataTrunc, function(pd) {
   }
   
   '%!in%' <- function(x,y)!('%in%'(x,y))
+  
+  # intRasters <- intA
+  # foldedRas <- pd$foldA
+  # tiledRas <- pd$tiles
   
   compareInt <- function(intRasters, # list of interpolated rasters
                          foldedRas, # the test/training rasters (raster A, latest)
@@ -186,6 +189,7 @@ datOut <- snow::clusterApply(cl, prepDataTrunc, function(pd) {
     # ep <- pd$pol
     # fr <- foldedRas
     # cr <- compareRas.r
+    # raslist <- intRasters$ras[[1]]
     compareEach <- function(raslist,fr,cr,ep=NULL) {
       
       # raslist <- intRasters$ras$`GRASS Regularized Splines Tension`
@@ -249,50 +253,50 @@ datOut <- snow::clusterApply(cl, prepDataTrunc, function(pd) {
   }
   
   
-  buffer.dist2 <- function(observations, predictionDomain, classes, width, ...) {
-    if(missing(width)){ width <- sqrt(areaSpatialGrid(predictionDomain)) }
-    if(!length(classes)==length(observations)){ stop("Length of 'observations' and 'classes' does not match.") }
-    ## remove classes without any points:
-    xg = summary(classes, maxsum=length(levels(classes)))
-    selg.levs = attr(xg, "names")[xg > 0]
-    
-    if(length(selg.levs)<length(levels(classes))){
-      fclasses <- as.factor(classes)
-      fclasses[which(!fclasses %in% selg.levs)] <- NA
-      classes <- droplevels(fclasses)
+    buffer.dist2 <- function(observations, predictionDomain, classes, width, ...) {
+      if(missing(width)){ width <- sqrt(areaSpatialGrid(predictionDomain)) }
+      if(!length(classes)==length(observations)){ stop("Length of 'observations' and 'classes' does not match.") }
+      ## remove classes without any points:
+      xg = summary(classes, maxsum=length(levels(classes)))
+      selg.levs = attr(xg, "names")[xg > 0]
+      
+      if(length(selg.levs)<length(levels(classes))){
+        fclasses <- as.factor(classes)
+        fclasses[which(!fclasses %in% selg.levs)] <- NA
+        classes <- droplevels(fclasses)
+      }
+      
+      ## derive buffer distances
+      s <- list(NULL)
+      
+      for(i in 1:length(levels(classes))) {
+        if (nrow(observations[which(classes==levels(classes)[i]),1]) > 0) {
+          
+          s[[i]] <- raster::distance(
+            rasterize(
+              observations[which(classes==levels(classes)[i]),1]@coords, y=raster(predictionDomain)),
+            width=width)
+        } else print(i)
+      }
+      s <- s[sapply(s, function(x){!is.null(x)})]
+      s <- brick(s)
+      s <- as(s, "SpatialPixelsDataFrame")
+      s <- s[predictionDomain@grid.index,]
+      return(s)
     }
-    
-    ## derive buffer distances
-    s <- list(NULL)
-    
-    for(i in 1:length(levels(classes))) {
-      if (nrow(observations[which(classes==levels(classes)[i]),1]) > 0) {
-        
-        s[[i]] <- raster::distance(
-          rasterize(
-            observations[which(classes==levels(classes)[i]),1]@coords, y=raster(predictionDomain)),
-          width=width)
-      } else print(i)
-    }
-    s <- s[sapply(s, function(x){!is.null(x)})]
-    s <- brick(s)
-    s <- as(s, "SpatialPixelsDataFrame")
-    s <- s[predictionDomain@grid.index,]
-    return(s)
-  }
   
-  maskPoly = pd$pol
-     paramData=cvGrids
-     gLoc = grassLocation
-     outputDir = '/home/tcrnbgh/Scratch/quarry_data/data_output'
-     testCV = T # = T for test run
-     outputTag = sessionTag
-     intMethods=c(
-       'rfsp',
-       'nn','idw','ok','tin',
-       'gfilter',
-       'gspline'
-     )
+    maskPoly = pd$pol
+    paramData=cvGrids
+    gLoc = grassLocation
+    outputDir = '/home/tcrnbgh/Scratch/quarry_data/data_output'
+    testCV = T # = T for test run
+    outputTag = sessionTag
+    intMethods=c(
+     'rfsp',
+     'nn','idw','ok','tin',
+     'gfilter',
+     'gspline'
+    )
 
     trainingData <- pd$foldA$train
     testData <- pd$foldA$all
@@ -538,18 +542,19 @@ datOut <- snow::clusterApply(cl, prepDataTrunc, function(pd) {
     
     if (dir.exists(gnLoc)) unlink(gnLoc,recursive=T)
     gdb <- paste0(gnLoc,'/PERMANENT')
-    # make location with grass call
-    system(paste0('grass -c /home/tcrnbgh/quarry_hpc/vector/init_vector.gpkg ',gnLoc,' -e'))
-    system(paste0(
-      'grass ',gdb,' --exec g.proj datum=osgb36 -c'
-    ))
-    print(gdb)
     
     # grass-based splines model ----
     # training.sf <- trainingData$sf
     # test.r <- testData$ras
     
     if ('gspline' %in% intMethods) {
+      # set up gdb
+      # make location with grass call
+      system(paste0('grass -c /home/tcrnbgh/quarry_hpc/vector/init_vector.gpkg ',gnLoc,' -e'))
+      system(paste0(
+        'grass ',gdb,' --exec g.proj datum=osgb36 -c'
+      ))
+      print(gdb)
       # write points for gspline
       if (file.exists(paste0('vector/intout_',maskPoly$fid,'_training.gpkg'))) {
         file.remove(paste0('vector/intout_',maskPoly$fid,'_training.gpkg'))
@@ -614,23 +619,32 @@ datOut <- snow::clusterApply(cl, prepDataTrunc, function(pd) {
       }
       rasterlist$`GRASS Regularized Splines Tension` <- interp_GSPLINEs
       cat('completed GSPLINE', file=paste0('GSPLINE_',pd$pol$fid,'.txt'))
+      if (dir.exists(gnLoc)) unlink(gnLoc,recursive=T)
     }
     
     
     if ('gfilter' %in% intMethods) {
+      # make location with grass call
+      system(paste0('grass -c /home/tcrnbgh/quarry_hpc/vector/init_vector.gpkg ',gnLoc,' -e'))
+      system(paste0(
+        'grass ',gdb,' --exec g.proj datum=osgb36 -c'
+      ))
+      print(gdb)
       # prepare rasters
       mLoc <- paste0(getwd(),'/raster/intout_',maskPoly$fid,'_ras_training.tif')
       # not sure why rasters were merged??
       # allRas <- merge(trainingData$ras[[1]],testData$ras[[1]]) # weird?
       # overwritten below:
-      allRas <- trainingData$ras[[1]]
+       
+      allRas <- trainingData$ras[[1]] %>% st_as_stars %>% 
+        st_set_crs(st_crs(27700)) %>% as(.,'Raster')
       
       writeRaster(allRas, 
                   mLoc,
                   overwrite=T)
       
       system(paste0(
-        'grass -c ',gdb,' --exec r.in.gdal input=',mLoc,' output=allRas -o --o'
+        'grass ',gdb,' --exec r.in.gdal input=',mLoc,' output=allRas -o --o'
       ))
       system(paste0(
         'grass ',gdb,' --exec g.region raster=allRas'
@@ -672,6 +686,7 @@ datOut <- snow::clusterApply(cl, prepDataTrunc, function(pd) {
         )
         print('finished executing grass call...')
         print('reading raster...')
+        # for some reason raster() doesnt load data into R memory!
         r <- readAll(raster(paste0('raster/gfilter_int_intfid_',pdata$intpol_fid,
                                    '_runnum_',x,'.tif')))
         print('done!')
@@ -687,9 +702,8 @@ datOut <- snow::clusterApply(cl, prepDataTrunc, function(pd) {
       }
       rasterlist$`GRASS Resampled Filter` <- interp_GFILTERs
       cat('completed GFILTER', file=paste0('GFILTER_',pd$pol$fid,'.txt'))
+      if (dir.exists(gnLoc)) unlink(gnLoc,recursive=T)
     }
-    
-    if (dir.exists(gdb)) unlink(gdb,recursive=T)
     
     # gen list
     rasterlist <- rasterlist %>% 
@@ -698,7 +712,6 @@ datOut <- snow::clusterApply(cl, prepDataTrunc, function(pd) {
              testData$ras[[1]])
       }))
     cat('completed raster list', file=paste0('rasterlist_',pd$pol$fid,'.txt'))
-    
     
     # output parameters as melted df
     paramsCv <- paramData.c %>% 
