@@ -668,19 +668,22 @@ datOut <- snow::clusterApply(cl, prepDataTrunc, function(pd) {
         print('finished executing grass call...')
         print('reading raster...')
         # for some reason raster() doesnt load data into R memory!
-        r <- readAll(raster(paste0('raster/gfilter_int_intfid_',pdata$intpol_fid,
-                                   '_runnum_',x,'.tif')))
-        print('done!')
-        crs(r) <- crs(testData$ras[[1]])
-        
-        interp_GFILTERs[[y]] <- r
-        # file.remove(paste0('raster/gfilter_int_intfid_',pdata$intpol_fid,
-        #                    '_runnum_',x,'.tif'))
-        tdiff <- Sys.time()-st
-        t <- list(val = tdiff,
-                  unit_chr = units(tdiff))
-        intTimes$GFILTER[[y]] <- t
-        Sys.sleep(2)
+        if (file.exists(paste0('raster/gfilter_int_intfid_',pdata$intpol_fid,
+                               '_runnum_',x,'.tif'))) {
+          r <- readAll(raster(paste0('raster/gfilter_int_intfid_',pdata$intpol_fid,
+                                     '_runnum_',x,'.tif')))
+          print('done!')
+          crs(r) <- crs(testData$ras[[1]])
+          
+          interp_GFILTERs[[y]] <- r
+          # file.remove(paste0('raster/gfilter_int_intfid_',pdata$intpol_fid,
+          #                    '_runnum_',x,'.tif'))
+          tdiff <- Sys.time()-st
+          t <- list(val = tdiff,
+                    unit_chr = units(tdiff))
+          intTimes$GFILTER[[y]] <- t
+          Sys.sleep(2)
+          }
       }
       rasterlist$`GRASS Resampled Filter` <- interp_GFILTERs
       cat('completed GFILTER', file=paste0('GFILTER_',pd$pol$fid,'.txt'))
