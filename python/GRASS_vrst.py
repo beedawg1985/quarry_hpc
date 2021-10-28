@@ -40,5 +40,11 @@ npminVal = sys.argv[3]
 runNo = sys.argv[4]
 polfid = sys.argv[5]
 outputDir = sys.argv[6]
-
-runInt(smoothVal,tensionVal,npminVal,runNo,polfid,outputDir)
+# runInt(2,1e-04,150,2233,68,'/lustre/scratch/tcrnbgh/quarry_data/quarry_hpc/raster')
+while attempts < 6:
+  try:
+    runInt(smoothVal,tensionVal,npminVal,runNo,polfid,outputDir)
+    break
+  except:
+    my_print('error running interpolation, trying again...')
+    attempts += 1

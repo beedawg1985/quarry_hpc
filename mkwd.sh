@@ -4,6 +4,7 @@ source /home/tcrnbgh/quarry_hpc/init.sh
 rm -rf /home/tcrnbgh/Scratch/quarry_data; mkdir /home/tcrnbgh/Scratch/quarry_data
 
 # run grass to initialise location - !! now done in R
+mkdir /home/tcrnbgh/Scratch/quarry_data/grassgb
 # grass -c /home/tcrnbgh/quarry_hpc/vector/intout_1_training.gpkg /home/tcrnbgh/Scratch/quarry_data/grassdb/quarry -e
 
 export GISDBASE=/home/tcrnbgh/Scratch/quarry_data/grassdb

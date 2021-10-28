@@ -35,5 +35,12 @@ runNo = sys.argv[3]
 polfid = sys.argv[4]
 outputDir = sys.argv[5]
 
+while attempts < 6:
+  try:
+    runInt(radVal,filterVal,runNo,polfid,outputDir)
+    break
+  except:
+    my_print('error running interpolation, trying again...')
+    attempts += 1
 
-runInt(radVal,filterVal,runNo,polfid,outputDir)
+

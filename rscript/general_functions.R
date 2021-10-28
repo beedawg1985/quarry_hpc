@@ -1533,6 +1533,7 @@ interpolateRas <- function(pd,
       print('reading grass output raster...')
       r <- raster(paste0('raster/gspline_int_intfid_',pdata$intpol_fid,
                          '_runnum_',x,'.tif'))
+      print('done!')
       interp_GSPLINEs[[y]] <- raster::merge(r,trainingData$ras[[1]])
       file.remove(paste0('raster/gspline_int_intfid_',pdata$intpol_fid,
                          '_runnum_',x,'.tif'))
@@ -1600,8 +1601,11 @@ interpolateRas <- function(pd,
               stderr = paste0(getwd(),'/logs/grass_resampfilter_errout_',
                               pdata$intpol_fid,'.txt')
       )
+      print('finished executing grass call...')
+      print('reading rasters...')
       r <- readAll(raster(paste0('raster/gfilter_int_intfid_',pdata$intpol_fid,
                          '_runnum_',x,'.tif')))
+      print('done!')
       crs(r) <- crs(testData$ras[[1]])
       
       interp_GFILTERs[[y]] <- r
