@@ -73,6 +73,8 @@ datOut <- snow::clusterApply(cl, prepDataTrunc, function(pd) {
   library(mgcv) 
   library(purrr)
   setwd('/home/tcrnbgh/Scratch/quarry_data/quarry_hpc')
+  print('temp dir...')
+  print(tempdir())
   
   userDataDir <- '/home/tcrnbgh/Scratch/quarry_data'
   grassGISDBASE <- paste0(userDataDir,'/grassdb')
@@ -527,6 +529,7 @@ datOut <- snow::clusterApply(cl, prepDataTrunc, function(pd) {
     # test.r <- testData$ras
     
     if ('gspline' %in% intMethods) {
+      print('attempting gspline vrts interpolation...')
       # set up gdb
       # make location with grass call
       system(paste0('grass -c /home/tcrnbgh/quarry_hpc/vector/init_vector.gpkg ',gnLoc,' -e'))
@@ -553,10 +556,10 @@ datOut <- snow::clusterApply(cl, prepDataTrunc, function(pd) {
       
       m.new <- st_as_stars(m) %>% 
         st_set_crs(st_crs(27700)) %>% as(.,'Raster')
-      
+      print('writing training data as tif...')
       writeRaster(m.new, mLoc,
                   overwrite=T)
-      
+      print('done!')
       system(paste0(
         'grass ',gdb,' --exec r.in.gdal input=',mLoc,' output=testMask -o --o'
       ))
@@ -586,6 +589,9 @@ datOut <- snow::clusterApply(cl, prepDataTrunc, function(pd) {
         )
         print('finished executing grass call...')
         print('reading grass output raster...')
+        if (file.exists(paste0('raster/gspline_int_intfid_',pdata$intpol_fid,
+                               '_runnum_',x,'.tif'))) {
+          
         r <- readAll(raster(paste0('raster/gspline_int_intfid_',pdata$intpol_fid,
                            '_runnum_',x,'.tif')))
         print('done!')
@@ -596,7 +602,7 @@ datOut <- snow::clusterApply(cl, prepDataTrunc, function(pd) {
         t <- list(val = tdiff,
                   unit_chr = units(tdiff))
         intTimes$GSPLINE[[y]] <- t
-        Sys.sleep(2)
+        } else interp_GSPLINEs[[y]] <- NULL
       }
       rasterlist$`GRASS Regularized Splines Tension` <- interp_GSPLINEs
       cat('completed GSPLINE', file=paste0('GSPLINE_',pd$pol$fid,'.txt'))
@@ -605,6 +611,7 @@ datOut <- snow::clusterApply(cl, prepDataTrunc, function(pd) {
     
     
     if ('gfilter' %in% intMethods) {
+      print('attempting gfilter interpolation...')
       # make location with grass call
       system(paste0('grass -c /home/tcrnbgh/quarry_hpc/vector/init_vector.gpkg ',gnLoc,' -e'))
       system(paste0(
@@ -619,11 +626,11 @@ datOut <- snow::clusterApply(cl, prepDataTrunc, function(pd) {
        
       allRas <- trainingData$ras[[1]] %>% st_as_stars %>% 
         st_set_crs(st_crs(27700)) %>% as(.,'Raster')
-      
+      print('writing training data as tif...')
       writeRaster(allRas, 
                   mLoc,
                   overwrite=T)
-      
+      print('done!')
       system(paste0(
         'grass ',gdb,' --exec r.in.gdal input=',mLoc,' output=allRas -o --o'
       ))
@@ -682,8 +689,7 @@ datOut <- snow::clusterApply(cl, prepDataTrunc, function(pd) {
           t <- list(val = tdiff,
                     unit_chr = units(tdiff))
           intTimes$GFILTER[[y]] <- t
-          Sys.sleep(2)
-          }
+          } else interp_GFILTERs[[y]] <- NULL
       }
       rasterlist$`GRASS Resampled Filter` <- interp_GFILTERs
       cat('completed GFILTER', file=paste0('GFILTER_',pd$pol$fid,'.txt'))
