@@ -41,7 +41,7 @@ f <- 'data/prepData_alllocs_maxdiff01_smpper0.RDS'
 prepData <- readRDS(f)
 print('done!')
 print('truncating prepData...')
-prepDataTrunc <- prepData[1:70]
+# prepDataTrunc <- prepData[1:70]
 print('done!')
 
 # interpolation run --------------------------------------------
@@ -57,7 +57,7 @@ print(clusterCall(cl, function() Sys.info()))
 
 print('running interpolations...')
 
-datOut <- snow::clusterApply(cl, prepDataTrunc, function(pd) {
+datOut <- snow::clusterApply(cl, prepData, function(pd) {
   
   library(tuneRanger)
   library(gstat)
@@ -277,7 +277,7 @@ datOut <- snow::clusterApply(cl, prepDataTrunc, function(pd) {
     paramData = cvGrids
     gLoc = grassGISDBASE
     outputDir = '/home/tcrnbgh/Scratch/quarry_data/data_output'
-    testCV = T # = T for test run
+    testCV = F # = T for test run
     outputTag = sessionTag
     intMethods=c(
      'rfsp',
@@ -604,8 +604,8 @@ datOut <- snow::clusterApply(cl, prepDataTrunc, function(pd) {
                            '_runnum_',x,'.tif')))
         print('done!')
         interp_GSPLINEs[[y]] <- raster::merge(r,trainingData$ras[[1]])
-        # file.remove(paste0('raster/gspline_int_intfid_',pdata$intpol_fid,
-        #                    '_runnum_',x,'.tif'))
+        file.remove(paste0('raster/gspline_int_intfid_',pdata$intpol_fid,
+                           '_runnum_',x,'.tif'))
         tdiff <- Sys.time()-st  
         t <- list(val = tdiff,
                   unit_chr = units(tdiff))
@@ -697,8 +697,8 @@ datOut <- snow::clusterApply(cl, prepDataTrunc, function(pd) {
           crs(r) <- crs(testData$ras[[1]])
           
           interp_GFILTERs[[y]] <- r
-          # file.remove(paste0('raster/gfilter_int_intfid_',pdata$intpol_fid,
-          #                    '_runnum_',x,'.tif'))
+          file.remove(paste0('raster/gfilter_int_intfid_',pdata$intpol_fid,
+                             '_runnum_',x,'.tif'))
           tdiff <- Sys.time()-st
           t <- list(val = tdiff,
                     unit_chr = units(tdiff))
@@ -742,8 +742,9 @@ datOut <- snow::clusterApply(cl, prepDataTrunc, function(pd) {
     save(dat,
          file=fout)
     print(paste0('saved file to... ',fout))
-    cat(intTimes,paste0(outputDir,'/intdat_',outputTag,'_polfid',pd$pol$fid,'_inttimes.txt'))
+    intTimes
 })
+save(datOut,paste0(outputDir,'/intdat_',outputTag,'int_times.RDS'))
 print('done!')
 # Clean up the cluster and release the relevant resources.
 stopCluster(cl)

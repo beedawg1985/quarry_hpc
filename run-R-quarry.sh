@@ -3,16 +3,16 @@
 #  R MPI parallel job
 
 # Request ten minutes of wallclock time (format hours:minutes:seconds).
-#$ -l h_rt=02:00:0
+#$ -l h_rt=04:00:0
 
 # Request 1 gigabyte of RAM per process.
 #$ -l mem=3G
 
 # Set the name of the job.
-#$ -N quarry_interpolations_test
+#$ -N quarry_interpolations
 
 # Select the MPI parallel environment with 32 processes
-#$ -pe mpi 70
+#$ -pe mpi 984
 
 # Load R/GRASS environment
 echo "running init.sh script..."
