@@ -3,6 +3,11 @@ source /home/tcrnbgh/quarry_hpc/init.sh
 # remove and remake working dir
 rm -rf /home/tcrnbgh/Scratch/quarry_data; mkdir /home/tcrnbgh/Scratch/quarry_data
 
+# make Renviron files
+export TMPDIR=/home/tcrnbgh/Scratch/tmp
+echo "TMPDIR=/home/tcrnbgh/Scratch/tmp" > /home/tcrnbgh/Scratch/quarry_data/.Renviron
+cp /home/tcrnbgh/Scratch/quarry_data/.Renviron /home/tcrnbgh/.Renviron
+
 # run grass to initialise location - !! now done in R
 mkdir /home/tcrnbgh/Scratch/quarry_data/grassdb
 # grass -c /home/tcrnbgh/quarry_hpc/vector/intout_1_training.gpkg /home/tcrnbgh/Scratch/quarry_data/grassdb/quarry -e
