@@ -379,7 +379,7 @@ datOut <- snow::clusterApply(cl, prepDataTrunc, function(pd) {
       
       intTimes$RF <- Sys.time()-st
       rasterlist$`Random Forest SP` <- list(interp_RF$rfSp)
-      cat('completed rfSp', file=paste0('rfSp_',pd$pol$fid,'.txt'))
+      # cat('completed rfSp', file=paste0('rfSp_',pd$pol$fid,'.txt'))
     }
     
     if ('tin' %in% intMethods) {
@@ -399,7 +399,7 @@ datOut <- snow::clusterApply(cl, prepDataTrunc, function(pd) {
       intTimes$TIN <- Sys.time()-st
       
       rasterlist$`Triangular Irregular Surface` <- list(interp_TIN)
-      cat('completed TIN', file=paste0('TIN_',pd$pol$fid,'.txt'))
+      # cat('completed TIN', file=paste0('TIN_',pd$pol$fid,'.txt'))
     }
     
     # parameterised interpolation models
@@ -468,7 +468,7 @@ datOut <- snow::clusterApply(cl, prepDataTrunc, function(pd) {
         intTimes$NN[[y]] <- t
       }
       rasterlist$`Nearest Neighbor` <- interp_NNs
-      cat('completed NN', file=paste0('NN_',pd$pol$fid,'.txt'))
+      # cat('completed NN', file=paste0('NN_',pd$pol$fid,'.txt'))
     }
     
     if ('idw' %in% intMethods) { 
@@ -494,7 +494,7 @@ datOut <- snow::clusterApply(cl, prepDataTrunc, function(pd) {
         intTimes$IDW[[y]] <- t
       }
       rasterlist$`Inverse Distance Weighted` <- interp_IDWs
-      cat('completed IDW', file=paste0('IDW_',pd$pol$fid,'.txt'))
+      # cat('completed IDW', file=paste0('IDW_',pd$pol$fid,'.txt'))
     }
     
     if ('ok' %in% intMethods) {
@@ -521,7 +521,7 @@ datOut <- snow::clusterApply(cl, prepDataTrunc, function(pd) {
         intTimes$OK[[y]] <- t
       }
       rasterlist$`Ordinary Kriging` <- interp_OKs
-      cat('completed OK', file=paste0('OK_',pd$pol$fid,'.txt'))
+      # cat('completed OK', file=paste0('OK_',pd$pol$fid,'.txt'))
     }
     
     # grass params
@@ -617,7 +617,7 @@ datOut <- snow::clusterApply(cl, prepDataTrunc, function(pd) {
         }
       }
       rasterlist$`GRASS Regularized Splines Tension` <- interp_GSPLINEs
-      cat('completed GSPLINE', file=paste0('GSPLINE_',pd$pol$fid,'.txt'))
+      # cat('completed GSPLINE', file=paste0('GSPLINE_',pd$pol$fid,'.txt'))
       if (dir.exists(gnLoc)) unlink(gnLoc,recursive=T)
     }
     
@@ -710,39 +710,39 @@ datOut <- snow::clusterApply(cl, prepDataTrunc, function(pd) {
           }
       }
       rasterlist$`GRASS Resampled Filter` <- interp_GFILTERs
-      cat('completed GFILTER', file=paste0('GFILTER_',pd$pol$fid,'.txt'))
+      # cat('completed GFILTER', file=paste0('GFILTER_',pd$pol$fid,'.txt'))
       if (dir.exists(gnLoc)) unlink(gnLoc,recursive=T)
     }
     
     # gen list
-    # rasterlist <- rasterlist %>% 
-    #   map( ~map(.x, .f = function(r) {
-    #     mask(crop(extend(r,testData$ras[[1]]),testData$ras[[1]]),
-    #          testData$ras[[1]])
-    #   }))
+    rasterlist <- rasterlist %>%
+      map( ~map(.x, .f = function(r) {
+        mask(crop(extend(r,testData$ras[[1]]),testData$ras[[1]]),
+             testData$ras[[1]])
+      }))
     # cat('completed raster list', file=paste0('rasterlist_',pd$pol$fid,'.txt'))
-    # #
-    # # output parameters as melted df
-    # paramsCv <- paramData.c %>% 
-    #   map_df(~reshape2::melt(.x,
-    #                          id.vars=c('run_no','intpol_fid',
-    #                                    'int_method')))
-    # 
-    # print(paste0('completed pol id...',maskPoly$fid))
-    # intA <- list(ras = rasterlist,
-    #              params.m = paramsCv,
-    #              intTimes = intTimes)
-    # 
-    # dat <- compareInt(intRasters=intA,
-    #                   foldedRas=pd$foldA,
-    #                   tiledRas=pd$tiles)
+    #
+    # output parameters as melted df
+    paramsCv <- paramData.c %>%
+      map_df(~reshape2::melt(.x,
+                             id.vars=c('run_no','intpol_fid',
+                                       'int_method')))
+
+    print(paste0('completed pol id...',maskPoly$fid))
+    intA <- list(ras = rasterlist,
+                 params.m = paramsCv,
+                 intTimes = intTimes)
+
+    dat <- compareInt(intRasters=intA,
+                      foldedRas=pd$foldA,
+                      tiledRas=pd$tiles)
     # cat('completed compareInt', file=paste0('compareInt_',pd$pol$fid,'.txt'))
-    # 
-    # fout <- paste0(outputDir,'/intdat_',outputTag,'_polfid',pd$pol$fid,'.RDS')
-    # save(dat,
-    #      file=fout)
-    # print(paste0('saved file to... ',fout))
-    intTimes
+
+    fout <- paste0(outputDir,'/intdat_',outputTag,'_polfid',pd$pol$fid,'.RDS')
+    save(dat,
+         file=fout)
+    print(paste0('saved file to... ',fout))
+    cat(intTimes,paste0(outputDir,'/intdat_',outputTag,'_polfid',pd$pol$fid,'_inttimes.txt'))
 })
 print('done!')
 # Clean up the cluster and release the relevant resources.
