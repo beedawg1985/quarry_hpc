@@ -52,6 +52,7 @@ print('done!')
 print(clusterCall(cl, function() Sys.info()))
 
 print('running interpolations...')
+
 datOut <- snow::clusterApply(cl, prepDataTrunc, function(pd) {
   
   library(tuneRanger)
@@ -556,10 +557,12 @@ datOut <- snow::clusterApply(cl, prepDataTrunc, function(pd) {
       
       m.new <- st_as_stars(m) %>% 
         st_set_crs(st_crs(27700)) %>% as(.,'Raster')
-      print('writing training data as tif...')
+      print('writing mask data as tif...')
       writeRaster(m.new, mLoc,
                   overwrite=T)
       print('done!')
+      
+      
       system(paste0(
         'grass ',gdb,' --exec r.in.gdal input=',mLoc,' output=testMask -o --o'
       ))
@@ -602,7 +605,11 @@ datOut <- snow::clusterApply(cl, prepDataTrunc, function(pd) {
         t <- list(val = tdiff,
                   unit_chr = units(tdiff))
         intTimes$GSPLINE[[y]] <- t
-        } else interp_GSPLINEs[[y]] <- NULL
+        } else { 
+          print(paste0('failed interpolation...pol_fid: ',pd$pol$fid,' run no: ',
+                       y))
+          interp_GSPLINEs[[y]] <- NULL 
+        }
       }
       rasterlist$`GRASS Regularized Splines Tension` <- interp_GSPLINEs
       cat('completed GSPLINE', file=paste0('GSPLINE_',pd$pol$fid,'.txt'))
@@ -618,18 +625,20 @@ datOut <- snow::clusterApply(cl, prepDataTrunc, function(pd) {
         'grass ',gdb,' --exec g.proj datum=osgb36 -c'
       ))
       print(gdb)
+      
+      
       # prepare rasters
       mLoc <- paste0(getwd(),'/raster/intout_',maskPoly$fid,'_ras_training.tif')
       # not sure why rasters were merged??
       # allRas <- merge(trainingData$ras[[1]],testData$ras[[1]]) # weird?
       # overwritten below:
-       
+      
       allRas <- trainingData$ras[[1]] %>% st_as_stars %>% 
-        st_set_crs(st_crs(27700)) %>% as(.,'Raster')
-      print('writing training data as tif...')
-      writeRaster(allRas, 
-                  mLoc,
-                  overwrite=T)
+        st_set_crs(st_crs(27700))
+      
+      print('writing training data as tif (stars method)...')
+      write_stars(allRas, 
+                  mLoc)
       print('done!')
       system(paste0(
         'grass ',gdb,' --exec r.in.gdal input=',mLoc,' output=allRas -o --o'
@@ -689,7 +698,11 @@ datOut <- snow::clusterApply(cl, prepDataTrunc, function(pd) {
           t <- list(val = tdiff,
                     unit_chr = units(tdiff))
           intTimes$GFILTER[[y]] <- t
-          } else interp_GFILTERs[[y]] <- NULL
+        } else { 
+          print(paste0('failed interpolation...pol_fid: ',pd$pol$fid,' run no: ',
+                       y))
+          interp_GFILTERs[[y]] <- NULL 
+          }
       }
       rasterlist$`GRASS Resampled Filter` <- interp_GFILTERs
       cat('completed GFILTER', file=paste0('GFILTER_',pd$pol$fid,'.txt'))
