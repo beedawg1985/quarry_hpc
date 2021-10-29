@@ -4,6 +4,10 @@ library(snow)
 setwd('/home/tcrnbgh/Scratch/quarry_data/quarry_hpc')
 sink('./2_interpolate_analyse_hpc_sinkout.txt')
 
+Sys.setenv(TMPDIR='/home/tcrnbgh/Scratch/tmp')
+print('main R tempdir is...')
+print(tempdir())
+
 # # check if packages need installing
 # print('checking packages...')
 # .libPaths(c('/home/tcrnbgh/R/x86_64-pc-linux-gnu-library/4.1',
@@ -76,6 +80,7 @@ datOut <- snow::clusterApply(cl, prepDataTrunc, function(pd) {
   setwd('/home/tcrnbgh/Scratch/quarry_data/quarry_hpc')
   print('temp dir...')
   print(tempdir())
+  Sys.setenv(TMPDIR='/home/tcrnbgh/Scratch/tmp')
   
   userDataDir <- '/home/tcrnbgh/Scratch/quarry_data'
   grassGISDBASE <- paste0(userDataDir,'/grassdb')
@@ -701,8 +706,6 @@ datOut <- snow::clusterApply(cl, prepDataTrunc, function(pd) {
         } else { 
           print(paste0('failed interpolation...pol_fid: ',pd$pol$fid,' run no: ',
                        x))
-          system('df -i /')
-          system('df ~/')
           # interp_GFILTERs[[y]] <- NULL 
           }
       }
@@ -712,13 +715,13 @@ datOut <- snow::clusterApply(cl, prepDataTrunc, function(pd) {
     }
     
     # gen list
-    rasterlist <- rasterlist %>% 
-      map( ~map(.x, .f = function(r) {
-        mask(crop(extend(r,testData$ras[[1]]),testData$ras[[1]]),
-             testData$ras[[1]])
-      }))
-    cat('completed raster list', file=paste0('rasterlist_',pd$pol$fid,'.txt'))
-    # 
+    # rasterlist <- rasterlist %>% 
+    #   map( ~map(.x, .f = function(r) {
+    #     mask(crop(extend(r,testData$ras[[1]]),testData$ras[[1]]),
+    #          testData$ras[[1]])
+    #   }))
+    # cat('completed raster list', file=paste0('rasterlist_',pd$pol$fid,'.txt'))
+    # #
     # # output parameters as melted df
     # paramsCv <- paramData.c %>% 
     #   map_df(~reshape2::melt(.x,
