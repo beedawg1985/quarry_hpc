@@ -607,8 +607,8 @@ datOut <- snow::clusterApply(cl, prepDataTrunc, function(pd) {
         intTimes$GSPLINE[[y]] <- t
         } else { 
           print(paste0('failed interpolation...pol_fid: ',pd$pol$fid,' run no: ',
-                       y))
-          interp_GSPLINEs[[y]] <- NULL 
+                       x))
+          # interp_GSPLINEs[[y]] <- NULL 
         }
       }
       rasterlist$`GRASS Regularized Splines Tension` <- interp_GSPLINEs
@@ -700,8 +700,10 @@ datOut <- snow::clusterApply(cl, prepDataTrunc, function(pd) {
           intTimes$GFILTER[[y]] <- t
         } else { 
           print(paste0('failed interpolation...pol_fid: ',pd$pol$fid,' run no: ',
-                       y))
-          interp_GFILTERs[[y]] <- NULL 
+                       x))
+          system('df -i /')
+          system('df ~/')
+          # interp_GFILTERs[[y]] <- NULL 
           }
       }
       rasterlist$`GRASS Resampled Filter` <- interp_GFILTERs
@@ -716,27 +718,27 @@ datOut <- snow::clusterApply(cl, prepDataTrunc, function(pd) {
              testData$ras[[1]])
       }))
     cat('completed raster list', file=paste0('rasterlist_',pd$pol$fid,'.txt'))
-    
-    # output parameters as melted df
-    paramsCv <- paramData.c %>% 
-      map_df(~reshape2::melt(.x,
-                             id.vars=c('run_no','intpol_fid',
-                                       'int_method')))
-    
-    print(paste0('completed pol id...',maskPoly$fid))
-    intA <- list(ras = rasterlist,
-                 params.m = paramsCv,
-                 intTimes = intTimes)
-    
-    dat <- compareInt(intRasters=intA,
-                      foldedRas=pd$foldA,
-                      tiledRas=pd$tiles)
-    cat('completed compareInt', file=paste0('compareInt_',pd$pol$fid,'.txt'))
-    
-    fout <- paste0(outputDir,'/intdat_',outputTag,'_polfid',pd$pol$fid,'.RDS')
-    save(dat,
-         file=fout)
-    print(paste0('saved file to... ',fout))
+    # 
+    # # output parameters as melted df
+    # paramsCv <- paramData.c %>% 
+    #   map_df(~reshape2::melt(.x,
+    #                          id.vars=c('run_no','intpol_fid',
+    #                                    'int_method')))
+    # 
+    # print(paste0('completed pol id...',maskPoly$fid))
+    # intA <- list(ras = rasterlist,
+    #              params.m = paramsCv,
+    #              intTimes = intTimes)
+    # 
+    # dat <- compareInt(intRasters=intA,
+    #                   foldedRas=pd$foldA,
+    #                   tiledRas=pd$tiles)
+    # cat('completed compareInt', file=paste0('compareInt_',pd$pol$fid,'.txt'))
+    # 
+    # fout <- paste0(outputDir,'/intdat_',outputTag,'_polfid',pd$pol$fid,'.RDS')
+    # save(dat,
+    #      file=fout)
+    # print(paste0('saved file to... ',fout))
     intTimes
 })
 print('done!')
