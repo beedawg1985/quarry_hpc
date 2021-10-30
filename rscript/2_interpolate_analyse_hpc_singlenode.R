@@ -1,4 +1,3 @@
-library(Rmpi)
 library(snow)
 
 setwd('/home/tcrnbgh/Scratch/quarry_data/quarry_hpc')
