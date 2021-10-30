@@ -48,7 +48,7 @@ st <- Sys.time()
 
 #!! if offSet = T the use pd$tiles$pol !!
 print('making node cluster...')
-cl <- makeCluster(mc <- getOption("cl.cores", 35),
+cl <- snow::makeCluster(mc <- getOption("cl.cores", 35),
                   outfile=paste0(getwd(),'/logs/cluster_out.txt'))
 
 print('done!')
