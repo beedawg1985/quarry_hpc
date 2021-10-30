@@ -48,13 +48,11 @@ st <- Sys.time()
 
 #!! if offSet = T the use pd$tiles$pol !!
 print('making node cluster...')
-cl <- snow::makeCluster(mc <- getOption("cl.cores", 35),
-                  outfile=paste0(getwd(),'/logs/cluster_out.txt'))
-
-print('done!')
-
+cl <- parallel::makeCluster(35,
+                            type='PSOCK')
+# print('done!')
 print('running interpolations...')
-datOut <- snow::clusterApplyLB(cl, prepData, function(pd) {
+datOut <- parallel::clusterApplyLB(cl, prepData, function(pd) {
   
   library(tuneRanger)
   library(gstat)
