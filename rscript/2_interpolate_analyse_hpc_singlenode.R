@@ -739,7 +739,7 @@ datOut <- parallel::clusterApplyLB(cl, prepData, function(pd) {
   print(paste0('saved file to... ',fout))
   intTimes
 })
-save(datOut,paste0(outputDir,'/intdat_',outputTag,'int_times.RDS'))
+save(datOut,file=paste0(outputDir,'/intdat_',outputTag,'int_times.RDS'))
 print('done!')
 # Clean up the cluster and release the relevant resources.
 stopCluster(cl)
