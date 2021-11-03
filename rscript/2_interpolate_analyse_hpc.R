@@ -41,7 +41,8 @@ f <- 'data/prepData_alllocs_maxdiff01_smpper0.RDS'
 prepData <- readRDS(f)
 print('done!')
 print('truncating prepData...')
-prepData <- prepData[1:70]
+prepData <- prepData[161:(161+160)]
+names(prepData) <- 161:(161+160)
 print('done!')
 
 # interpolation run --------------------------------------------
@@ -127,6 +128,7 @@ datOut <- snow::clusterApply(cl, prepData, function(pd) {
       ))
     )
   print('done!')
+  
   # end new CV grids ------------------------------------------------
   
   which.median <- function(x) which.min(abs(x - median(x)))
