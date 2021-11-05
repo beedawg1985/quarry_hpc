@@ -201,8 +201,7 @@ buffer.dist2 <- function(observations, predictionDomain, classes, width, ...) {
 
 # interpolation function -----
 interpolateRas <- 
-  function(
-    maskPoly = pd$pol,
+  function(pd,
     paramData = cvGrids,
     gLoc = grassGISDBASE,
     outputDir = '/home/tcrnbgh/Scratch/quarry_data/data_output',
@@ -215,7 +214,8 @@ interpolateRas <-
       'gspline'
       )
     ) {
-
+    
+  maskPoly = pd$pol
   trainingData <- pd$foldA$train
   testData <- pd$foldA$all
   # object for storing run times

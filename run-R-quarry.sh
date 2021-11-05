@@ -6,7 +6,7 @@
 #$ -l h_rt=15:00:0
 
 # Request 1 gigabyte of RAM per process.
-#$ -l mem=500M
+#$ -l mem=300M
 
 # Set the name of the job.
 #$ -N quarry_interpolations

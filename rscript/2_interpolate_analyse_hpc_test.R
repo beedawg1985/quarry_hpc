@@ -46,8 +46,7 @@ datOut <- snow::clusterApply(cl, prepData, function(pd) {
   sink(paste0('logs/2_interpolate_analyse_hpc_sinkout_site',pd$pol$fid,'.txt'))
   cvGrids <- loadCV()
   
-  interpolateRas(
-    maskPoly = pd$pol,
+  interpolateRas(pd,
     paramData = cvGrids,
     gLoc = grassGISDBASE,
     outputDir = '/home/tcrnbgh/Scratch/quarry_data/data_output',
@@ -61,7 +60,7 @@ datOut <- snow::clusterApply(cl, prepData, function(pd) {
     )
   )
 })
-save(datOut,paste0(outputDir,'/intdat_',outputTag,'int_times.RDS'))
+save(datOut,paste0('/home/tcrnbgh/Scratch/quarry_data/',outputTag,'int_times.RDS'))
 print('done!')
 # Clean up the cluster and release the relevant resources.
 stopCluster(cl)
