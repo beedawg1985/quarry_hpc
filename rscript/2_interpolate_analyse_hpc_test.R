@@ -14,8 +14,7 @@ f <- 'data/prepData_alllocs_norm_maxdiff01_smpper0.RDS'
 prepData <- readRDS(f)
 print('done!')
 print('truncating prepData...')
-prepData <- prepData[1:161]
-
+prepData <- prepData[1:50]
 print('done!')
 
 # interpolation run --------------------------------------------
@@ -41,11 +40,10 @@ datOut <- snow::clusterApply(cl, prepData, function(pd) {
   
   userDataDir <- '/home/tcrnbgh/Scratch/quarry_data'
   grassGISDBASE <- paste0(userDataDir,'/grassdb')
-
+  
   sessionTag <- 'prepData_alllocs_norm_maxdiff01_smpper0'
   
   sink(paste0('logs/2_interpolate_analyse_hpc_sinkout_site',pd$pol$fid,'.txt'))
-  
   cvGrids <- loadCV()
   
   interpolateRas(
@@ -53,16 +51,15 @@ datOut <- snow::clusterApply(cl, prepData, function(pd) {
     paramData = cvGrids,
     gLoc = grassGISDBASE,
     outputDir = '/home/tcrnbgh/Scratch/quarry_data/data_output',
-    testCV = F, # = T for test run
+    testCV = T, # = T for test run
     outputTag = sessionTag,
     intMethods=c(
       'rfsp',
       'nn','idw','ok','tin',
       'gfilter',
       'gspline'
-      )
     )
-  
+  )
 })
 save(datOut,paste0(outputDir,'/intdat_',outputTag,'int_times.RDS'))
 print('done!')
