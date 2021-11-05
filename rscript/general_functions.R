@@ -1654,7 +1654,7 @@ interpolateRas <- function(pd,
 interpolateRasBicubic <- function(pd,cvg,
                                   outputDir = '/media/mal/working_files/quarry/',
                                   testCV=T,
-                                  tag) {
+                                  outputTag) {
   tag <- str_replace(tag,tag,paste0(tag, '_bicubic'))
   trainingData <- pd$foldA$train
   testData <- pd$foldA$all
@@ -1718,8 +1718,7 @@ interpolateRasBicubic <- function(pd,cvg,
     }))
   
   intA <- list(ras = rasterlist)
-  
-  
+
   dat <- compareInt(intRasters=intA,
                     foldedRas=pd$foldA,
                     tiledRas=pd$tiles)
