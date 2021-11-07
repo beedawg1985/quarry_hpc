@@ -44,7 +44,8 @@ datOut <- snow::clusterApply(cl, prepData, function(pd) {
 
   sessionTag <- 'prepData_alllocs_norm_maxdiff01_smpper0'
   
-  sink(paste0('logs/2_interpolate_analyse_hpc_sinkout_site',pd$pol$fid,'.txt'))
+  sink(paste0('logs/2_interpolate_analyse_hpc_sinkout_site',
+              pd$pol$fid,'.txt'))
   
   cvGrids <- loadCV()
   
