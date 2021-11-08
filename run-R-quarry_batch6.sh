@@ -9,10 +9,10 @@
 #$ -l mem=300M
 
 # Set the name of the job.
-#$ -N quarry_interpolations
+#$ -N quarry_interpolations_batch2
 
 # Select the MPI parallel environment with 32 processes
-#$ -pe mpi 160
+#$ -pe mpi 170
 
 # Load R/GRASS environment
 echo "running init.sh script..."
@@ -27,6 +27,6 @@ echo "done!"
 
 # Run our MPI job. GERun is our wrapper for mpirun, which launches MPI jobs  
 echo "running gerun..."
-gerun /home/tcrnbgh/quarry_hpc/RMPISNOW_bgh < /home/tcrnbgh/Scratch/quarry_data/quarry_hpc/rscript/2_interpolate_analyse_hpc.R
+gerun /home/tcrnbgh/quarry_hpc/RMPISNOW_bgh < /home/tcrnbgh/Scratch/quarry_data/quarry_hpc/rscript/2_interpolate_analyse_hpc_batch6.R
 echo "done!"
 
