@@ -14,8 +14,8 @@ f <- 'data/prepData_alllocs_norm_maxdiff01_smpper0.RDS'
 prepData <- readRDS(f)
 print('done!')
 print('truncating prepData...')
-prepData <- prepData[1:160]
-
+prepData <- prepData[654:814]
+654+160
 print('done!')
 
 # interpolation run --------------------------------------------
