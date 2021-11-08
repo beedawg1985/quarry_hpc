@@ -9,7 +9,7 @@
 #$ -l mem=300M
 
 # Set the name of the job.
-#$ -N quarry_interpolations_batch2
+#$ -N quarry_interpolations_batch6
 
 # Select the MPI parallel environment with 32 processes
 #$ -pe mpi 170
