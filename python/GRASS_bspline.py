@@ -30,7 +30,7 @@ def runInt(rasLoc,stepVal,lamVal,runNo,polfid):
                     flags='n')
   grass.run_command("r.out.gdal",\
                     input='int',\
-                    output='/home/barneyharris/projects/quarry/raster/gbicubic_int_intfid_' + \
+                    output='raster/gbicubic_int_intfid_' + \
                     polfid + '_runnum_' + runNo + '.tif',
                     overwrite=True)
   return
