@@ -754,6 +754,6 @@ interpolateRasBicubic <- function(pd,
                      full.names = T)
   file.remove(frem)
   save(dat,
-       file=paste0(outputDir,'intdat_',tag,'_polfid',pd$pol$fid,'.RDS'))
+       file=paste0(outputDir,'/intdat_',tag,'_polfid',pd$pol$fid,'.RDS'))
   return(rasterlist)
 }
