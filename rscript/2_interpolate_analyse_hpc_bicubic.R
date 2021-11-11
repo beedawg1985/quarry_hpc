@@ -13,7 +13,7 @@ print('loading prepped data...')
 f <- 'data/prepData_alllocs_norm_maxdiff01_smpper0.RDS'
 prepData <- readRDS(f)
 
-prepData <- prepData[1:5]
+prepData <- prepData[1:35]
 print('done!')
 
 print('done!')

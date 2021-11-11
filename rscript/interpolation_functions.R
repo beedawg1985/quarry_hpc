@@ -728,8 +728,8 @@ interpolateRasBicubic <- function(pd,
     r <- raster(paste0('raster/gbicubic_int_intfid_',pdata$intpol_fid,
                        '_runnum_',x,'.tif'))
     r.merge <- raster::merge(r,trainingData$ras[[1]])
-    file.remove(paste0('raster/gbicubic_int_intfid_',pdata$intpol_fid,
-                       '_runnum_',x,'.tif'))
+    # file.remove(paste0('raster/gbicubic_int_intfid_',pdata$intpol_fid,
+    #                    '_runnum_',x,'.tif'))
     return(r.merge)
   })
   
@@ -750,9 +750,9 @@ interpolateRasBicubic <- function(pd,
                     tiledRas=pd$tiles)
   dat$diff.maps <- NULL
   gc()
-  frem <- list.files('raster',pattern=paste0('gbicubic_int_intfid_',pd$tiles$pol$fid),
-                     full.names = T)
-  file.remove(frem)
+  # frem <- list.files('raster',pattern=paste0('gbicubic_int_intfid_',pd$tiles$pol$fid),
+  #                    full.names = T)
+  # file.remove(frem)
   save(dat,
        file=paste0(outputDir,'/intdat_',tag,'_polfid',pd$pol$fid,'.RDS'))
   return(rasterlist)
