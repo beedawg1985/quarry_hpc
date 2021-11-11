@@ -13,7 +13,7 @@ print('loading prepped data...')
 f <- 'data/prepData_alllocs_norm_maxdiff01_smpper0.RDS'
 prepData <- readRDS(f)
 
-prepData <- prepData[1:35]
+prepData <- prepData[1:160]
 print('done!')
 
 print('done!')
@@ -23,19 +23,19 @@ print('running interpolations...')
 st <- Sys.time()
 
 #!! if offSet = T the use pd$tiles$pol !!
-# print('getting MPI cluster...')
-# cl <- snow::getMPIcluster()
-# print('done!')
-# # Display info about each process in the cluster
-# print(clusterCall(cl, function() Sys.info()))
+print('getting MPI cluster...')
+cl <- snow::getMPIcluster()
+print('done!')
+# Display info about each process in the cluster
+print(clusterCall(cl, function() Sys.info()))
 
-print('making node cluster...')
-cl <- parallel::makeCluster(35,
-                            type='PSOCK')
+# print('making node cluster...')
+# cl <- parallel::makeCluster(35,
+#                             type='PSOCK')
 
 print('running interpolations...')
 
-datOut <- snow::clusterApply(cl, prepData, function(pd) {
+datOut <- snow::clusterApplyLB(cl, prepData, function(pd) {
   
   setwd('/home/tcrnbgh/Scratch/quarry_data/quarry_hpc')
   source('rscript/interpolation_functions.R')
@@ -56,10 +56,11 @@ datOut <- snow::clusterApply(cl, prepData, function(pd) {
   interpolateRasBicubic(pd,
                         cvg = cvGrids,
                         outputDir = '/home/tcrnbgh/Scratch/quarry_data/data_output',
-                        testCV=T,
+                        testCV=F,
                         tag=sessionTag)
   
 })
+
 save(datOut,paste0('/home/tcrnbgh/Scratch/quarry_data/',outputTag,'int_times.RDS'))
 print('done!')
 # Clean up the cluster and release the relevant resources.
