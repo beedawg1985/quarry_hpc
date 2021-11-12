@@ -7,33 +7,6 @@ Sys.setenv(TMPDIR='/home/tcrnbgh/Scratch/tmp')
 print('main R tempdir is...')
 print(tempdir())
 
-# # check if packages need installing
-# print('checking packages...')
-# .libPaths(c('/home/tcrnbgh/R/x86_64-pc-linux-gnu-library/4.1',
-#             .libPaths()))
-# list.of.packages <- c("tuneRanger","gstat","reshape2",
-#                       "e1071","caret","randomForest","stringr",
-#                       "stars","sf","dplyr","gdalUtils",
-#                       "raster","automap","fields","interp",
-#                       "mgcv","purrr","furrr","doParallel",
-#                       "future.apply", "snow")
-# new.packages <- list.of.packages[!(list.of.packages %in% installed.packages()[,"Package"])]
-# if(length(new.packages)) {
-#   print('following packages need installing...')
-#   print(new.packages)
-#   print('installing...')
-#   install.packages(new.packages,
-#                    lib="/home/tcrnbgh/R/x86_64-pc-linux-gnu-library/4.1")
-#   print('done!')
-# } else print('no new packages need installing!')
-# print('done!')
-
-# source functions
-# print('loading functions...')
-# 
-# source('rscript/general_functions.R')
-# print('done!')
-
 # prepared data --------------------------------
 print('loading prepped data...')
 f <- 'data/prepData_alllocs_maxdiff01_smpper0.RDS'
@@ -48,16 +21,13 @@ st <- Sys.time()
 
 #!! if offSet = T the use pd$tiles$pol !!
 print('making node cluster...')
-cl <- parallel::makeCluster(35,
+cl <- parallel::makeCluster(10,
                             type='PSOCK')
 # print('done!')
 print('running interpolations...')
 
-pd <- prepData[[1]]
-
-
-
-datOut <- snow::clusterApply(cl, prepData, function(pd) {
+# pd <- prepData[[1]]
+datOut <- snow::clusterApplyLB(cl, prepData, function(pd) {
   
   setwd('/home/tcrnbgh/Scratch/quarry_data/quarry_hpc')
   source('rscript/interpolation_functions.R')
@@ -79,7 +49,7 @@ datOut <- snow::clusterApply(cl, prepData, function(pd) {
                  paramData = cvGrids,
                  gLoc = grassGISDBASE,
                  outputDir = '/home/tcrnbgh/Scratch/quarry_data/data_output',
-                 testCV = F, # = T for test run
+                 testCV = T, # = T for test run
                  outputTag = sessionTag,
                  intMethods=c(
                    'rfsp',
@@ -90,7 +60,7 @@ datOut <- snow::clusterApply(cl, prepData, function(pd) {
   )
   
 })
-save(datOut,paste0('/home/tcrnbgh/Scratch/quarry_data/',outputTag,'int_times.RDS'))
+save(datOut,file=paste0('/home/tcrnbgh/Scratch/quarry_data/',outputTag,'int_times.RDS'))
 print('done!')
 # Clean up the cluster and release the relevant resources.
 stopCluster(cl)

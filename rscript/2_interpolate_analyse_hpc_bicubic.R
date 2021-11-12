@@ -13,7 +13,7 @@ print('loading prepped data...')
 f <- 'data/prepData_alllocs_norm_maxdiff01_smpper0.RDS'
 prepData <- readRDS(f)
 
-prepData <- prepData[1:160]
+prepData <- prepData[161:length(prepData)]
 print('done!')
 
 print('done!')
@@ -61,7 +61,7 @@ datOut <- snow::clusterApplyLB(cl, prepData, function(pd) {
   
 })
 
-save(datOut,paste0('/home/tcrnbgh/Scratch/quarry_data/',outputTag,'int_times.RDS'))
+save(datOut,file=paste0('/home/tcrnbgh/Scratch/quarry_data/',outputTag,'int_times.RDS'))
 print('done!')
 # Clean up the cluster and release the relevant resources.
 stopCluster(cl)
