@@ -456,23 +456,25 @@ interpolateRas <-
   
   # grass params
   # generate unique grass location name
-  gnLoc <- paste0(gLoc,'/grass_pol',pd$pol$fid)
-  if (dir.exists(gnLoc)) unlink(gnLoc,recursive=T)
-  gdb <- paste0(gnLoc,'/PERMANENT')
+
   
-  # grass-based splines model ----
+  # grass- regularized splines with tension model ----
   # training.sf <- trainingData$sf
   # test.r <- testData$ras
   
   if ('gspline' %in% intMethods) {
     print('attempting gspline vrts interpolation...')
     # set up gdb
+    gnLoc <- paste0(gLoc,'/grass_pol',pd$pol$fid)
+    if (dir.exists(gnLoc)) unlink(gnLoc,recursive=T)
+    gdb <- paste0(gnLoc,'/PERMANENT')
     # make location with grass call
     system(paste0('grass -c /home/tcrnbgh/quarry_hpc/vector/init_vector.gpkg ',gnLoc,' -e'))
     system(paste0(
       'grass ',gdb,' --exec g.proj datum=osgb36 -c'
     ))
     print(gdb)
+    
     # write points for gspline
     if (file.exists(paste0('vector/intout_',maskPoly$fid,'_training.gpkg'))) {
       file.remove(paste0('vector/intout_',maskPoly$fid,'_training.gpkg'))
@@ -551,9 +553,12 @@ interpolateRas <-
     if (dir.exists(gnLoc)) unlink(gnLoc,recursive=T)
   }
   
-  
-  if ('gfilter' %in% intMethods) {
-    print('attempting gfilter interpolation...')
+  # grass Bicubic spline -----
+  if ('gbicubic' %in% intMethods) {
+    # set up gdb
+    gnLoc <- paste0(gLoc,'/grass_pol',pd$pol$fid)
+    if (dir.exists(gnLoc)) unlink(gnLoc,recursive=T)
+    gdb <- paste0(gnLoc,'/PERMANENT')
     # make location with grass call
     system(paste0('grass -c /home/tcrnbgh/quarry_hpc/vector/init_vector.gpkg ',gnLoc,' -e'))
     system(paste0(
@@ -561,87 +566,37 @@ interpolateRas <-
     ))
     print(gdb)
     
+    trainLoc <- paste0(getwd(),'/raster/intout_',maskPoly$fid,'_ras_trainmask.tif')
+    writeRaster(trainingData$ras[[1]], trainLoc,
+                overwrite=T)
     
-    # prepare rasters
-    mLoc <- paste0(getwd(),'/raster/intout_',maskPoly$fid,'_ras_training.tif')
-    # not sure why rasters were merged??
-    # allRas <- merge(trainingData$ras[[1]],testData$ras[[1]]) # weird?
-    # overwritten below:
-    
-    allRas <- trainingData$ras[[1]] %>% st_as_stars %>% 
-      st_set_crs(st_crs(27700))
-    
-    print('writing training data as tif (stars method)...')
-    write_stars(allRas, 
-                mLoc)
-    print('done!')
-    system(paste0(
-      'grass ',gdb,' --exec r.in.gdal input=',mLoc,' output=allRas -o --o'
-    ))
-    system(paste0(
-      'grass ',gdb,' --exec g.region raster=allRas'
-    ))
-    # x <- 1
-    # y <- 1
-    load(file='cvdev/gfilter.RDS')
-    interp_GFILTERs <- list()
-    for (y in 1:length(paramData.c$gfilter$run_no)) {
-      x <- paramData.c$gfilter$run_no[y]
-      
-      pdata <- paramData.c$gfilter %>% 
-        filter(run_no == x)
-      
-      # get filter text info
-      pdata$filtText <- 
-        gfilter.params[which(gfilter.params$filtcomb_number == pdata$filtVals),'col3']
-      pdata$filtLength <-
-        unlist(lapply(str_split(pdata$filtText,','),length))
-      
-      pdata$nradVals <- 
-        ifelse(pdata$filtLength == 2, 
-               paste0(rep(pdata$radVals,2),collapse=','),
-               as.character(pdata$radVals))
-      
-      st <- Sys.time()
+    interp_GBICUBICs <- lapply(paramData.c$gbicubic$run_no, function(x) {
+      pdata <- paramData.c$gbicubic %>% 
+        dplyr::filter(run_no == x)
       system2('grass',
-              paste(shQuote(gdb),
-                    shQuote('--exec'),
-                    shQuote(paste0(getwd(),'/python/GRASS_resampfilter.py')),
-                    shQuote(pdata$nradVals),
-                    shQuote(pdata$filtText),
-                    shQuote(x),
-                    shQuote(pdata$intpol_fid),
-                    shQuote(paste0(getwd(),'/raster'))
+              paste(
+                shQuote(gdb),
+                # shQuote('--tmp-location'),
+                shQuote('EPSG:27700'),
+                shQuote('--exec'),
+                shQuote(file.path(getwd(),'python/GRASS_bspline.py')),
+                shQuote(trainLoc),
+                shQuote(pdata$stepVals),
+                shQuote(pdata$lamVals),
+                shQuote(x),
+                shQuote(pdata$intpol_fid)
               ),
-              stderr = paste0(getwd(),'/logs/grass_resampfilter_errout_',
+              stderr = paste0(getwd(),'/logs/grass_bspline_errout_',
                               pdata$intpol_fid,'.txt')
       )
-      print('finished executing grass call...')
-      print('reading raster...')
-      # for some reason raster() doesnt load data into R memory!
-      if (file.exists(paste0('raster/gfilter_int_intfid_',pdata$intpol_fid,
-                             '_runnum_',x,'.tif'))) {
-        r <- readAll(raster(paste0('raster/gfilter_int_intfid_',pdata$intpol_fid,
-                                   '_runnum_',x,'.tif')))
-        print('done!')
-        crs(r) <- crs(testData$ras[[1]])
-        
-        interp_GFILTERs[[y]] <- r
-        file.remove(paste0('raster/gfilter_int_intfid_',pdata$intpol_fid,
-                           '_runnum_',x,'.tif'))
-        tdiff <- Sys.time()-st
-        t <- list(val = tdiff,
-                  unit_chr = units(tdiff))
-        intTimes$GFILTER[[y]] <- t
-      } else { 
-        print(paste0('failed interpolation...pol_fid: ',pd$pol$fid,' run no: ',
-                     x))
-        # interp_GFILTERs[[y]] <- NULL 
-      }
-    }
-    rasterlist$`GRASS Resampled Filter` <- interp_GFILTERs
-    # cat('completed GFILTER', file=paste0('GFILTER_',pd$pol$fid,'.txt'))
-    if (dir.exists(gnLoc)) unlink(gnLoc,recursive=T)
+      r <- raster(paste0('raster/gbicubic_int_intfid_',pdata$intpol_fid,
+                         '_runnum_',x,'.tif'))
+      r.merge <- raster::merge(r,trainingData$ras[[1]])
+      # file.remove(paste0('raster/gbicubic_int_intfid_',pdata$intpol_fid,
+      #                    '_runnum_',x,'.tif'))
+      return(r.merge)
+    })
+    rasterlist$`GRASS Bicubic Spline` <- interp_GBICUBICs
   }
   
   # gen list
@@ -675,85 +630,3 @@ interpolateRas <-
   intTimes
   }
 
-interpolateRasBicubic <- function(pd,
-                                  cvg,
-                                  outputDir = '/media/mal/working_files/quarry/',
-                                  testCV=T,
-                                  tag) {
-  tag <- str_replace(tag,tag,paste0(tag, '_bicubic'))
-  trainingData <- pd$foldA$train
-  testData <- pd$foldA$all
-  maskPoly <-  pd$tiles$pol # if using offset poly
-  paramData <- cvg
-  
-  paramData.c <- 
-    paramData %>% 
-    map2(.y = names(paramData), 
-         .f = function(df, y) {
-           if (any(str_detect(names(df),'nmaxVals')) && 
-               any(str_detect(names(df),'nminVals'))) {
-             df <- df %>% filter(nminVals < nmaxVals) }
-           df <- df %>% 
-             mutate(run_no = 1:nrow(.),
-                    intpol_fid = maskPoly$fid,
-                    int_method = y)
-           if (testCV) df <- df[1:5,]
-           return(df)
-         })
-  
-  
-  trainLoc <- paste0(getwd(),'/raster/intout_',maskPoly$fid,'_ras_trainmask.tif')
-  writeRaster(trainingData$ras[[1]], trainLoc,
-              overwrite=T)
-  
-  interp_GBICUBICs <- lapply(paramData.c$gbicubic$run_no, function(x) {
-    pdata <- paramData.c$gbicubic %>% 
-      filter(run_no == x)
-    system2('grass',
-            paste(
-              # shQuote(gdb),
-              shQuote('--tmp-location'),
-              shQuote('EPSG:27700'),
-              shQuote('--exec'),
-              shQuote(file.path(getwd(),'python/GRASS_bspline.py')),
-              shQuote(trainLoc),
-              shQuote(pdata$stepVals),
-              shQuote(pdata$lamVals),
-              shQuote(x),
-              shQuote(pdata$intpol_fid)
-            ),
-            stderr = paste0(getwd(),'/logs/grass_bspline_errout_',
-                            pdata$intpol_fid,'.txt')
-    )
-    r <- raster(paste0('raster/gbicubic_int_intfid_',pdata$intpol_fid,
-                       '_runnum_',x,'.tif'))
-    r.merge <- raster::merge(r,trainingData$ras[[1]])
-    # file.remove(paste0('raster/gbicubic_int_intfid_',pdata$intpol_fid,
-    #                    '_runnum_',x,'.tif'))
-    return(r.merge)
-  })
-  
-  # gen list
-  rasterlist <- list(
-    "GRASS Bicubic Spline" = interp_GBICUBICs
-  ) %>% 
-    map( ~map(.x, .f = function(r) {
-      mask(crop(extend(r,testData$ras[[1]]),testData$ras[[1]]),
-           testData$ras[[1]])
-    }))
-  
-  intA <- list(ras = rasterlist)
-  
-  
-  dat <- compareInt(intRasters=intA,
-                    foldedRas=pd$foldA,
-                    tiledRas=pd$tiles)
-  dat$diff.maps <- NULL
-  gc()
-  # frem <- list.files('raster',pattern=paste0('gbicubic_int_intfid_',pd$tiles$pol$fid),
-  #                    full.names = T)
-  # file.remove(frem)
-  save(dat,
-       file=paste0(outputDir,'/intdat_',tag,'_polfid',pd$pol$fid,'.RDS'))
-  return(rasterlist)
-}

@@ -9,7 +9,7 @@ print(tempdir())
 
 # prepared data --------------------------------
 print('loading prepped data...')
-f <- 'data/prepData_alllocs_maxdiff01_smpper0.RDS'
+f <- 'data/prepData_alllocs_maxdiff01_smpper50.RDS'
 prepData <- readRDS(f)
 print('done!')
 print('truncating prepData...')
@@ -54,7 +54,7 @@ datOut <- snow::clusterApplyLB(cl, prepData, function(pd) {
                  intMethods=c(
                    'rfsp',
                    'nn','idw','ok','tin',
-                   'gfilter',
+                   'gbicubic',
                    'gspline'
                  )
   )
