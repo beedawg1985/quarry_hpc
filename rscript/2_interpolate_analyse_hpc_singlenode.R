@@ -9,7 +9,8 @@ print(tempdir())
 
 # prepared data --------------------------------
 print('loading prepped data...')
-f <- 'data/prepData_alllocs_maxdiff01_smpper50.RDS'
+
+f <- 'prepData_alllocs_norm_maxdiff01_smpper50.RDS'
 prepData <- readRDS(f)
 print('done!')
 print('truncating prepData...')
