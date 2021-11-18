@@ -9,8 +9,7 @@ print(tempdir())
 
 # prepared data --------------------------------
 print('loading prepped data...')
-
-f <- 'prepData_alllocs_norm_maxdiff01_smpper50.RDS'
+f <- "data/prepData_alllocs_norm_maxdiff01_smpper50.RDS"
 prepData <- readRDS(f)
 print('done!')
 print('truncating prepData...')
@@ -68,49 +67,3 @@ stopCluster(cl)
 sink()
 mpi.quit()
 
-
-# clusterEvalQ (cl, traceback())
-
-# 
-# system('cp /home/tcrnbgh/quarry_hpc/rscript/* /home/tcrnbgh/Scratch/quarry_data/quarry_hpc/rscript/')
-# system('cp /home/tcrnbgh/quarry_hpc/python/* /home/tcrnbgh/Scratch/quarry_data/quarry_hpc/python/')
-# source(paste0(getwd(),'/rscript/general_functions.R'))
-# pd <- prepData[[1]]
-# st <- Sys.time()
-# intTimes <- interpolateRas(pd,
-#                maskPoly = pd$pol,
-#                paramData=cvGrids,
-#                outputDir = '/home/tcrnbgh/Scratch/quarry_data/data_output',
-#                gLoc = grassLocation,
-#                testCV = F, # = T for test run
-#                outputTag = sessionTag,
-#                intMethods=c(
-#                  'rfsp',
-#                  'nn','idw','ok','tin',
-#                  'gfilter',
-#                  'gspline'
-#                )
-# )
-# intTimeDiff <- Sys.time() - st
-# 
-# 
-# # clear grass mapsets
-# allMaps <- list.dirs(substr(grassLocation,1,nchar(grassLocation)-1),
-#                      recursive = F, full.names = T)
-# dirRem <- setdiff(allMaps,paste0(grassLocation,"PERMANENT"))
-# map(dirRem,~unlink(.x,recursive=T))
-# # clear tmp rasters
-# f <- list.files('raster',full.names = T)
-# file.remove(f)
-
-
-# # # bicubic cant be run in parallel so separate function is used here
-# biOut <- lapply(prepData,interpolateRasBicubic,
-#                 cvg=cvGrids,
-#                 testCV=F, # check testCV = F for full run
-#                 tag=sessionTag)
-# 
-
-# 
-# bindCubic(sessionTag)
-# print(Sys.time() - st)

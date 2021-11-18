@@ -67,9 +67,11 @@ pp <- function(...) {
 '%!in%' <- function(x,y)!('%in%'(x,y))
 
 # intRasters <- intA
+# pd <- prepData[[1]]
 # foldedRas <- pd$foldA
 # tiledRas <- pd$tiles
-
+# library(stars)
+# library(raster)
 compareInt <- function(intRasters, # list of interpolated rasters
                        foldedRas, # the test/training rasters (raster A, latest)
                        tiledRas # another raster to compare int surfaces with (raster B, earliest)
@@ -103,12 +105,14 @@ compareInt <- function(intRasters, # list of interpolated rasters
   # ep <- pd$pol
   # fr <- foldedRas
   # cr <- compareRas.r
+  # interpolated <- cr
   # raslist <- intRasters$ras[[1]]
   compareEach <- function(raslist,fr,cr,ep=NULL) {
     
     # raslist <- intRasters$ras$`GRASS Regularized Splines Tension`
     # interpolated <- raslist[[1]]
     compFunction <- function(interpolated) {
+      
       
       trainingErr.r <- mask(interpolated,fr$train$ras[[1]]) - 
         fr$train$ras[[1]]
