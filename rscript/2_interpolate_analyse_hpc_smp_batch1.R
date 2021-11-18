@@ -10,12 +10,14 @@ print(tempdir())
 
 # prepare data --------------------------------
 print('loading prepped data...')
-f <- 'data/prepData_alllocs_norm_maxdiff01_smpper0.RDS'
+f <- 'data/prepData_alllocs_norm_maxdiff01_smpper50.RDS'
 prepData <- readRDS(f)
+length(prepData)
+
 print('done!')
 print('truncating prepData...')
-prepData <- prepData[322:492]
-322+160
+prepData <- prepData[1:160]
+
 print('done!')
 
 # interpolation run --------------------------------------------
@@ -58,7 +60,7 @@ datOut <- snow::clusterApply(cl, prepData, function(pd) {
     intMethods=c(
       'rfsp',
       'nn','idw','ok','tin',
-      'gfilter',
+      'gbicubic',
       'gspline'
       )
     )

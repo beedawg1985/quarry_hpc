@@ -9,7 +9,7 @@
 #$ -l mem=300M
 
 # Set the name of the job.
-#$ -N quarry_interpolations_bicubic_batch1
+#$ -N quarry_interpolations_smp_batch2
 
 # Select the MPI parallel environment with 32 processes
 #$ -pe mpi 160
@@ -27,6 +27,6 @@ echo "done!"
 
 # Run our MPI job. GERun is our wrapper for mpirun, which launches MPI jobs  
 echo "running gerun..."
-gerun /home/tcrnbgh/quarry_hpc/RMPISNOW_bgh < /home/tcrnbgh/Scratch/quarry_data/quarry_hpc/rscript/2_interpolate_analyse_hpc_bicubic.R
+gerun /home/tcrnbgh/quarry_hpc/RMPISNOW_bgh < /home/tcrnbgh/Scratch/quarry_data/quarry_hpc/rscript/2_interpolate_analyse_hpc_smp_batch2.R
 echo "done!"
 
