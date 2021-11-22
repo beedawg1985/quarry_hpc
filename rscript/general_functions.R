@@ -1241,7 +1241,7 @@ interpolateRas <- function(pd,
                                         'rfsp','tin','gspline',
                                         'gbicubic','gfilter') ) {
   trainingData <- pd$foldA$train
-  testData <- pd$foldA$all
+  testData <- pd$foldA$test
   # object for storing run times
   intTimes <- list()
   # object for storing interpolated rasters
