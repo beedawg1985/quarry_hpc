@@ -16,7 +16,6 @@ print(tempdir())
 # prepare data --------------------------------
 print('loading prepped data...')
 prepData <- readRDS('data/prepData_alllocs_norm_maxdiff01_smpper0.RDS')
-pd <- prepData[[1]]
 
 jackKnife <- function(pd) {
   # newPd <- 1:nrow(pd$foldA$train$sf) %>% 
@@ -36,7 +35,7 @@ jackKnife <- function(pd) {
       newTestRas <- mask(pd$foldA$train$ras,newTrain$ras,
                          inverse=T)
       crs(newTestRas) <- crs(newTrain$sp)
-      pd$foldA$test <- list(ras = list(newTestRas))
+      pd$foldA$test <- st_as_stars(newTestRas)
       
       pd$pol$fid <- paste0(pd$pol$fid,'.',x)
       crs(pd$foldA$all$sp) <- crs(newTrain$sp)
@@ -47,6 +46,7 @@ jackKnife <- function(pd) {
 prepData <- prepData[1:5] %>% map(jackKnife) %>% 
   flatten()
 
+pd <- prepData[[1]]
 print('done!')
 
 # interpolation run --------------------------------------------
