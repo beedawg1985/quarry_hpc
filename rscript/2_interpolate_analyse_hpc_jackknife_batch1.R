@@ -18,8 +18,8 @@ print('loading prepped data...')
 prepData <- readRDS('data/prepData_alllocs_norm_maxdiff01_smpper0.RDS')
 
 jackKnife <- function(pd) {
-  # newPd <- 1:nrow(pd$foldA$train$sf) %>% 
-  newPd <- 1:10 %>% 
+  newPd <- 1:nrow(pd$foldA$train$sf) %>%                          # check this!
+  # newPd <- 1:10 %>% 
     map(.f = function(x) {
       newTrain <- list()
       pd.sf <- pd$foldA$train$sf %>% st_sf
@@ -46,7 +46,6 @@ jackKnife <- function(pd) {
 prepData <- prepData[1:5] %>% map(jackKnife) %>% 
   flatten()
 
-pd <- prepData[[1]]
 print('done!')
 
 # interpolation run --------------------------------------------
@@ -84,7 +83,7 @@ datOut <- snow::clusterApply(cl, prepData, function(pd) {
     paramData = cvGrids,
     gLoc = grassGISDBASE,
     outputDir = '/home/tcrnbgh/Scratch/quarry_data/data_output',
-    testCV = T, # = T for test run                                # check this !
+    testCV = F, # = T for test run                                # check this !
     outputTag = sessionTag,
     intMethods=c(
       # 'rfsp','tin',
