@@ -28,6 +28,7 @@ jackKnife <- function(pd) {
       newTrain$df <- cbind(st_coordinates(newTrain$sf),
                            st_drop_geometry(newTrain$sf))
       newTrain$sp <- as_Spatial(newTrain$sf)
+      crs(newTrain$sp) <- crs(pd$foldA$train$sp)
       newTrain$ras <- rasterFromXYZ(newTrain$df)
       crs(newTrain$ras) <- crs(newTrain$sp)
       pd$foldA$train <- newTrain
@@ -35,9 +36,9 @@ jackKnife <- function(pd) {
       newTestRas <- mask(pd$foldA$train$ras,newTrain$ras,
                          inverse=T)
       crs(newTestRas) <- crs(newTrain$sp)
-      pd$foldA$test <- st_as_stars(newTestRas)
-      pd$pol$fid <- paste0(pd$pol$fid,'.',x)
+      pd$foldA$test <- list(ras = list(newTestRas))
       
+      pd$pol$fid <- paste0(pd$pol$fid,'.',x)
       crs(pd$foldA$all$sp) <- crs(newTrain$sp)
       pd
     })

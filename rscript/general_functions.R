@@ -1413,6 +1413,7 @@ interpolateRas <- function(pd,
         nmax = pdata$nmaxVals,
         nmin = pdata$nminVals,# Number of neighboring observations used for the fit
       )
+      crs(testData$ras[[1]]) <- crs(trainingData$sp)
       interp_NNs[[y]] <- raster::interpolate(testData$ras[[1]], fit_NN)
       tdiff <- Sys.time()-st
       t <- list(val = tdiff,
