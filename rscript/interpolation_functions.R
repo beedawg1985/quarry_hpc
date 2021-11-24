@@ -55,6 +55,37 @@ loadCV <- function() {
   return(cvGrids)
 }
 
+
+loadCV2 <- function() {
+  # revised cv parameters based on results of exploratory values above
+  cvGrids <- 
+    list(
+      nn = data.frame(expand.grid(
+        nmaxVals = seq(5,300,by=5),
+        nminVals = 1
+      )),
+      idw = data.frame(expand.grid(
+        nmaxVals = seq(5,300,by=5),
+        nminVals = 1,
+        idpVals = seq(0.2,10,by=0.2)
+      )),
+      ok = data.frame(expand.grid(
+        nmaxVals = seq(5,300,by=5),
+        nminVals = 1
+      )),
+      gspline = data.frame(expand.grid(
+        tensionVals = c(seq(0.0001,0.1,by=0.002),
+                        seq(0.15,0.7,by=0.05)),
+        smoothVals = c(1,seq(10,50,by=10)),
+        nminVals = seq(10,260,by=20)
+      )),
+      gbicubic = data.frame(expand.grid(
+        stepVals = seq(1,20,by=1),
+        lamVals = c(seq(0.0001,0.1,by=0.005),seq(0.1,1.4,by=0.1))
+      ))
+    )
+  return(cvGrids)
+}
 # end new CV grids ------------------------------------------------
 
 which.median <- function(x) which.min(abs(x - median(x)))

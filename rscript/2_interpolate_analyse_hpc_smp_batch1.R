@@ -10,7 +10,7 @@ print(tempdir())
 
 # prepare data --------------------------------
 print('loading prepped data...')
-f <- 'data/prepData_alllocs_norm_maxdiff01_smpper50.RDS'          # check this !
+f <- 'data/prepData_alllocs_norm_maxdiff01_hole2.RDS'             # check this !
 prepData <- readRDS(f)
 length(prepData)
 
@@ -44,12 +44,12 @@ datOut <- snow::clusterApply(cl, prepData, function(pd) {
   userDataDir <- '/home/tcrnbgh/Scratch/quarry_data'
   grassGISDBASE <- paste0(userDataDir,'/grassdb')
 
-  sessionTag <- 'prepData_alllocs_norm_maxdiff01_smpper50'        # check this !
+  sessionTag <- 'prepData_alllocs_norm_maxdiff01_hole2'           # check this !
   
   sink(paste0('logs/2_interpolate_analyse_hpc_sinkout_site',
               pd$pol$fid,'.txt'))
   
-  cvGrids <- loadCV()
+  cvGrids <- loadCV2()                                            # check this !
   
   interpolateRas(pd,
     paramData = cvGrids,
@@ -68,7 +68,7 @@ datOut <- snow::clusterApply(cl, prepData, function(pd) {
 })
 save(datOut,
      file=paste0('/home/tcrnbgh/Scratch/quarry_data/',
-                 'prepData_alllocs_norm_maxdiff01_smpper50',
+                 'prepData_alllocs_norm_maxdiff01_hole2',
                  'int_times.RDS'))
 print('done!')
 # Clean up the cluster and release the relevant resources.
