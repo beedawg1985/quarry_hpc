@@ -1,6 +1,7 @@
 library(Rmpi)
 library(snow)
 library(snowfall)
+library(stringr)
 
 setwd('/home/tcrnbgh/Scratch/quarry_data/quarry_hpc')
 sink('./2_interpolate_analyse_hpc_sinkout.txt')
