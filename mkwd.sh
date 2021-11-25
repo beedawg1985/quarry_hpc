@@ -18,7 +18,7 @@ export GISDBASE=/home/tcrnbgh/Scratch/quarry_data/grassdb
 mkdir /home/tcrnbgh/Scratch/quarry_data/data_output
 
 # copy R repo
-cp -r /home/tcrnbgh/quarry_hpc /home/tcrnbgh/Scratch/quarry_data/quarry_hpc
+rsync -avr --exclude=.git/ /home/tcrnbgh/quarry_hpc/ /home/tcrnbgh/Scratch/quarry_data/quarry_hpc/
 
 # make python scripts executable
 chmod +x /home/tcrnbgh/Scratch/quarry_data/quarry_hpc/python/GRASS_vrst.py
