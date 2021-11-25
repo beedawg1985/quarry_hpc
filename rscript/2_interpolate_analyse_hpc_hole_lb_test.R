@@ -55,12 +55,12 @@ datOut <- snowfall::sfClusterApplyLB(1:nrow(tasks), function(tnum) {
               Sys.getpid(),'.txt'))
   
   m <- tasks[tnum,'Var1']
-  interpolateRas2(prepData[[tasks[tnum,'Var2']]],
-                  paramData=loadCV2(),
+  interpolateRas(prepData[[tasks[tnum,'Var2']]],
+                  paramData=loadCV(),
                   gLoc = 
-                    "/home/barneyharris/user_quarry_data/grasslocs",
+                    '/home/tcrnbgh/Scratch/quarry_data/grassdb',
                   outputDir = 
-                    '/media/mal/working_files/quarry',
+                    '/home/tcrnbgh/Scratch/quarry_data/data_output',
                   testCV = T,                                     # check this !
                   outputTag = 
                     paste0(sessionTag,'_',paste0(m,collapse='_')),
