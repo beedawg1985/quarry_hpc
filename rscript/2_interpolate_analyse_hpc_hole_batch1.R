@@ -49,7 +49,7 @@ datOut <- snow::clusterApply(cl, prepData, function(pd) {
   sink(paste0('logs/2_interpolate_analyse_hpc_sinkout_site',
               pd$pol$fid,'.txt'))
   
-  cvGrids <- loadCV2()                                            # check this !
+  cvGrids <- loadCV()                                            # check this !
   
   interpolateRas(pd,
     paramData = cvGrids,

@@ -3,16 +3,16 @@
 #  R MPI parallel job
 
 # Request ten minutes of wallclock time (format hours:minutes:seconds).
-#$ -l h_rt=13:00:0
+#$ -l h_rt=3:00:0
 
 # Request 1 gigabyte of RAM per process.
-#$ -l mem=300M
+#$ -l mem=250M
 
 # Set the name of the job.
-#$ -N quarry_interpolations_hole_batch1
+#$ -N quarry_interpolations_hole_lb_test
 
 # Select the MPI parallel environment with 32 processes
-#$ -pe mpi 160
+#$ -pe mpi 60
 
 # Load R/GRASS environment
 echo "running init.sh script..."
@@ -27,6 +27,6 @@ echo "done!"
 
 # Run our MPI job. GERun is our wrapper for mpirun, which launches MPI jobs  
 echo "running gerun..."
-gerun /home/tcrnbgh/quarry_hpc/RMPISNOW_bgh < /home/tcrnbgh/Scratch/quarry_data/quarry_hpc/rscript/2_interpolate_analyse_hpc_hole_batch1.R
+gerun /home/tcrnbgh/quarry_hpc/RMPISNOW_bgh < /home/tcrnbgh/Scratch/quarry_data/quarry_hpc/rscript/2_interpolate_analyse_hpc_hole_lb_test.R
 echo "done!"
 
