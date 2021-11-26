@@ -1,5 +1,5 @@
 #!/bin/bash -l
-source /home/tcrnbgh/quarry_hpc/init.sh
+# source /home/tcrnbgh/quarry_hpc/init.sh
 # remove and remake working dir
 rm -rf /home/tcrnbgh/Scratch/quarry_data; mkdir /home/tcrnbgh/Scratch/quarry_data
 

@@ -32,7 +32,7 @@ print('done!')
 print(clusterCall(cl, function() Sys.info()))
 
 print('running interpolations...')
-pd <- prepDatap[[1]]
+
 datOut <- snow::clusterApply(cl, prepData, function(pd) {
   
   setwd('/home/tcrnbgh/Scratch/quarry_data/quarry_hpc')
