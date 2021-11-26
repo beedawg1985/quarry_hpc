@@ -36,7 +36,7 @@ print('done!')
 
 print('making node cluster...')
 snowfall::sfInit(parallel=T, cpus=60, type='MPI')                 # check this !
-snowfall::sfInit(parallel=T, cpus=30, type='MPI')                 # check this !
+# snowfall::sfInit(parallel=T, cpus=30, type='MPI')                 # check this !
 snowfall::sfExport(list=c('prepData','tasks','sessionTag'))
 print('done!')
 

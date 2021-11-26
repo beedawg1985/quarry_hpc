@@ -18,9 +18,9 @@ library(mgcv)
 library(purrr)
 # new CV grids ----------------------------------------------------
 # prep parameters for grass resamp.filter 
-print('generating cv params...')
 # revised cv parameters based on results of exploratory values above
 loadCV <- function() {
+  print('generating cv params...')
   load(file='cvdev/gfilter.RDS')
   cvGrids <- 
     list(
@@ -505,7 +505,7 @@ interpolateRas <-
       if (dir.exists(gnLoc)) unlink(gnLoc,recursive=T)
       gdb <- paste0(gnLoc,'/PERMANENT')
       # make location with grass call
-      system(paste0('grass -c -e EPSG:27700 ',gnLoc,' -e'))
+      system(paste0('grass -c ', getwd(),'/vector/init_vector.gpkg ',gnLoc,' -e'))
       system(paste0(
         'grass ',gdb,' --exec g.proj datum=osgb36 -c'
       ))
@@ -596,9 +596,11 @@ interpolateRas <-
       # set up gdb
       gnLoc <- paste0(gLoc,'/grass_gbicubic_pol',pd$pol$fid)
       if (dir.exists(gnLoc)) unlink(gnLoc,recursive=T)
+      # make lcoation
+      system(paste0('grass -c ', getwd(),'/vector/init_vector.gpkg ',gnLoc,' -e'))
+      # get mapset name
       gdb <- paste0(gnLoc,'/PERMANENT')
       # make location with grass call
-      system(paste0('grass -c -e EPSG:27700 ',gnLoc,' -e'))
       system(paste0(
         'grass ',gdb,' --exec g.proj datum=osgb36 -c'
       ))
@@ -671,89 +673,3 @@ interpolateRas <-
     print(paste0('saved file to... ',fout))
     intTimes
   }
-
-# grass bicubic ----
-# tag <- sessionTag
-interpolateRasBicubic <- function(pd,
-                                  cvg,
-                                  outputDir = '/media/mal/working_files/quarry/',
-                                  testCV=T,
-                                  tag) {
-  tag <- str_replace(tag,tag,paste0(tag, '_bicubic'))
-  trainingData <- pd$foldA$train
-  testData <- pd$foldA$all
-  maskPoly <-  pd$tiles$pol # if using offset poly
-  paramData <- cvg
-  
-  paramData.c <- 
-    paramData %>% 
-    map2(.y = names(paramData), 
-         .f = function(df, y) {
-           if (any(str_detect(names(df),'nmaxVals')) && 
-               any(str_detect(names(df),'nminVals'))) {
-             df <- df %>% filter(nminVals < nmaxVals) }
-           df <- df %>% 
-             mutate(run_no = 1:nrow(.),
-                    intpol_fid = maskPoly$fid,
-                    int_method = y)
-           if (testCV) df <- df[1:5,]
-           return(df)
-         })
-  
-  
-  trainLoc <- paste0(getwd(),'/raster/intout_',maskPoly$fid,'_ras_trainmask.tif')
-  writeRaster(trainingData$ras[[1]], trainLoc,
-              overwrite=T)
-  
-  interp_GBICUBICs <- lapply(paramData.c$gbicubic$run_no, function(x) {
-    pdata <- paramData.c$gbicubic %>% 
-      filter(run_no == x)
-    system2('grass',
-            paste(
-              # shQuote(gdb),
-              shQuote('--tmp-location'),
-              shQuote('EPSG:27700'),
-              shQuote('--exec'),
-              shQuote('/home/barneyharris/projects/quarry/python/GRASS_bspline.py'),
-              shQuote(trainLoc),
-              shQuote(pdata$stepVals),
-              shQuote(pdata$lamVals),
-              shQuote(x),
-              shQuote(pdata$intpol_fid)
-            ),
-            stderr = paste0(getwd(),'/logs/grass_bspline_errout_',
-                            pdata$intpol_fid,'.txt')
-    )
-    r <- raster(paste0('raster/gbicubic_int_intfid_',pdata$intpol_fid,
-                       '_runnum_',x,'.tif'))
-    r.merge <- raster::merge(r,trainingData$ras[[1]])
-    file.remove(paste0('raster/gbicubic_int_intfid_',pdata$intpol_fid,
-                       '_runnum_',x,'.tif'))
-    return(r.merge)
-  })
-  
-  # gen list
-  rasterlist <- list(
-    "GRASS Bicubic Spline" = interp_GBICUBICs
-  ) %>% 
-    map( ~map(.x, .f = function(r) {
-      mask(crop(extend(r,testData$ras[[1]]),testData$ras[[1]]),
-           testData$ras[[1]])
-    }))
-  
-  intA <- list(ras = rasterlist)
-  
-  
-  dat <- compareInt(intRasters=intA,
-                    foldedRas=pd$foldA,
-                    tiledRas=pd$tiles)
-  dat$diff.maps <- NULL
-  gc()
-  frem <- list.files('raster',pattern=paste0('gbicubic_int_intfid_',pd$tiles$pol$fid),
-                     full.names = T)
-  file.remove(frem)
-  save(dat,
-       file=paste0(outputDir,'intdat_',tag,'_polfid',pd$pol$fid,'.RDS'))
-  return(rasterlist)
-}
-

@@ -32,7 +32,7 @@ print('done!')
 print(clusterCall(cl, function() Sys.info()))
 
 print('running interpolations...')
-
+pd <- prepDatap[[1]]
 datOut <- snow::clusterApply(cl, prepData, function(pd) {
   
   setwd('/home/tcrnbgh/Scratch/quarry_data/quarry_hpc')
@@ -58,10 +58,10 @@ datOut <- snow::clusterApply(cl, prepData, function(pd) {
     testCV = F, # = T for test run                                # check this !
     outputTag = sessionTag,
     intMethods=c(
-      'rfsp',
-      'nn','idw','ok','tin',
-      'gbicubic',
-      'gspline'
+      'rfsp'
+      ,'nn','idw','ok','tin'
+      ,'gbicubic'
+      ,'gspline'
       )
     )
   
