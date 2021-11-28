@@ -17,7 +17,7 @@ length(prepData)
 print('done!')
 print('truncating prepData...')
 prepData <- prepData[322:482]                                       # check this !
-
+322+160
 print('done!')
 
 # interpolation run --------------------------------------------
@@ -33,7 +33,7 @@ print(clusterCall(cl, function() Sys.info()))
 
 print('running interpolations...')
 
-datOut <- snow::clusterApply(cl, prepData, function(pd) {
+datOut <- snow::clusterApplyLB(cl, prepData, function(pd) {
   
   setwd('/home/tcrnbgh/Scratch/quarry_data/quarry_hpc')
   source('rscript/interpolation_functions.R')
@@ -49,7 +49,7 @@ datOut <- snow::clusterApply(cl, prepData, function(pd) {
   sink(paste0('logs/2_interpolate_analyse_hpc_sinkout_site',
               pd$pol$fid,'.txt'))
   
-  cvGrids <- loadCV2()                                            # check this !
+  cvGrids <- loadCV()                                            # check this !
   
   interpolateRas(pd,
     paramData = cvGrids,
@@ -58,10 +58,10 @@ datOut <- snow::clusterApply(cl, prepData, function(pd) {
     testCV = F, # = T for test run                                # check this !
     outputTag = sessionTag,
     intMethods=c(
-      'rfsp',
-      'nn','idw','ok','tin',
-      'gbicubic',
-      'gspline'
+      'rfsp'
+      ,'nn','idw','ok','tin'
+      ,'gbicubic'
+      ,'gspline'
       )
     )
   

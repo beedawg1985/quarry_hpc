@@ -3,10 +3,10 @@
 #  R MPI parallel job
 
 # Request ten minutes of wallclock time (format hours:minutes:seconds).
-#$ -l h_rt=18:00:0
+#$ -l h_rt=13:00:0
 
 # Request 1 gigabyte of RAM per process.
-#$ -l mem=250M
+#$ -l mem=300M
 
 # Set the name of the job.
 #$ -N quarry_interpolations_hole_batch2
