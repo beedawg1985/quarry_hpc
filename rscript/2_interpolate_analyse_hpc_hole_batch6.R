@@ -16,8 +16,9 @@ length(prepData)
 
 print('done!')
 print('truncating prepData...')
-prepData <- prepData[322:482]                                       # check this !
-322+160
+prepData <- prepData[805:984]                                       # check this !
+
+
 print('done!')
 
 # interpolation run --------------------------------------------
