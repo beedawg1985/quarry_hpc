@@ -35,7 +35,7 @@ def runInt(rasLoc,stepVal,lamVal,runNo,polfid):
                     overwrite=True)
   return
    
-# parse arguments
+# parse arguments these can be suppled from the command line
 rasLoc = sys.argv[1]
 stepVal = sys.argv[2]
 lamVal = sys.argv[3]
