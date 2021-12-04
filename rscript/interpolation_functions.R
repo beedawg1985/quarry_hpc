@@ -634,8 +634,8 @@ interpolateRas <-
         r <- raster(paste0('raster/gbicubic_int_intfid_',pdata$intpol_fid,
                            '_runnum_',x,'.tif'))
         r.merge <- raster::merge(r,trainingData$ras[[1]])
-        file.remove(paste0('raster/gbicubic_int_intfid_',pdata$intpol_fid,
-                           '_runnum_',x,'.tif'))
+        # file.remove(paste0('raster/gbicubic_int_intfid_',pdata$intpol_fid,
+        #                    '_runnum_',x,'.tif'))
         return(r.merge)
       })
       rasterlist$`GRASS Bicubic Spline` <- interp_GBICUBICs

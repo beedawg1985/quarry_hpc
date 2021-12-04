@@ -1,4 +1,4 @@
-library(Rmpi)
+library(Rmpi) # callng this library will crash R unless you've submitted using qsub
 library(snow)
 
 setwd('/home/tcrnbgh/Scratch/quarry_data/quarry_hpc')
@@ -32,7 +32,7 @@ print('done!')
 print(clusterCall(cl, function() Sys.info()))
 
 print('running interpolations...')
-
+# loop below runs in parallel
 datOut <- snow::clusterApply(cl, prepData, function(pd) {
   
   setwd('/home/tcrnbgh/Scratch/quarry_data/quarry_hpc')
@@ -60,8 +60,8 @@ datOut <- snow::clusterApply(cl, prepData, function(pd) {
     intMethods=c(
       'rfsp',
       'nn','idw','ok','tin',
-      'gbicubic',
-      'gspline'
+      'gbicubic'
+      # 'gspline'
       )
     )
   
