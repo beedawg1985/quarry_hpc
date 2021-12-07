@@ -3,7 +3,7 @@
 #  R MPI parallel job
 
 # Request ten minutes of wallclock time (format hours:minutes:seconds).
-#$ -l h_rt=15:00:0
+#$ -l h_rt=30:00:0
 
 # Request 1 gigabyte of RAM per process.
 #$ -l mem=300M
