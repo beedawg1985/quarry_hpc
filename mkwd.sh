@@ -1,7 +1,10 @@
 #!/bin/bash -l
 # source /home/tcrnbgh/quarry_hpc/init.sh
 # remove and remake working dir
-rm -rf /home/tcrnbgh/Scratch/quarry_data; mkdir /home/tcrnbgh/Scratch/quarry_data
+rmdir ~/empty_dir
+mkdir ~/empty_dir
+rsync -a --delete ~/empty_dir/ ~/Scratch/quarry_data/
+mkdir /home/tcrnbgh/Scratch/quarry_data
 
 # make Renviron files
 export TMPDIR=/home/tcrnbgh/Scratch/tmp

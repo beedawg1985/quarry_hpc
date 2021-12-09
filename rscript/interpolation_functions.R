@@ -561,8 +561,6 @@ interpolateRas <-
                       shQuote(paste0(getwd(),'/raster'))
                 ),
                 stderr = paste0(getwd(),'/logs/grass_vrst_errout_',
-                                pdata$intpol_fid,'.txt'),
-                stdout = paste0(getwd(),'/logs/grass_vrst_out_',
                                 pdata$intpol_fid,'.txt')
         )
         print('finished executing grass call...')
@@ -627,15 +625,13 @@ interpolateRas <-
                   shQuote(pdata$intpol_fid)
                 ),
                 stderr = paste0(getwd(),'/logs/grass_bspline_errout_',
-                                pdata$intpol_fid,'.txt'),
-                stdout = paste0(getwd(),'/logs/grass_bspline_out_',
                                 pdata$intpol_fid,'.txt')
         )
         r <- raster(paste0('raster/gbicubic_int_intfid_',pdata$intpol_fid,
                            '_runnum_',x,'.tif'))
         r.merge <- raster::merge(r,trainingData$ras[[1]])
-        # file.remove(paste0('raster/gbicubic_int_intfid_',pdata$intpol_fid,
-        #                    '_runnum_',x,'.tif'))
+        file.remove(paste0('raster/gbicubic_int_intfid_',pdata$intpol_fid,
+                           '_runnum_',x,'.tif'))
         return(r.merge)
       })
       rasterlist$`GRASS Bicubic Spline` <- interp_GBICUBICs
